@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Docker volumes
+volume/
+docker-data/
+
+# LocalStack
+.localstack/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+terraform/builds/*.zip
+
+# pytest
+.pytest_cache/
+
+# Temp
+*.tmp
+*.log
+
+# Security scan results (regenerated)
+security-scan-results.md

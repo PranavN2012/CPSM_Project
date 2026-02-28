@@ -1,0 +1,24 @@
+# ======================================================================
+# LocalStack — Local AWS Environment
+# Emulates S3, Lambda, DynamoDB, EventBridge, API Gateway, IAM, CloudWatch
+# ======================================================================
+
+services:
+  localstack:
+    image: localstack/localstack:latest
+    container_name: cspm-localstack
+    ports:
+      - "4566:4566"           # Unified gateway for all AWS services
+      - "4510-4559:4510-4559" # External service port range
+    environment:
+      - SERVICES=s3,lambda,dynamodb,events,apigateway,iam,logs,sts
+      - DEBUG=0
+      - LAMBDA_EXECUTOR=docker
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - DEFAULT_REGION=us-east-1
+    volumes:
+      - localstack-data:/var/lib/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+
+volumes:
+  localstack-data:

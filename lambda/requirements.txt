@@ -1,0 +1,3 @@
+# Remediation Lambda dependencies
+# boto3 and urllib3 are pre-installed in the AWS Lambda Python runtime
+# No additional packages required

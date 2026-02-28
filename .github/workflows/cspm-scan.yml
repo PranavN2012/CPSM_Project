@@ -1,0 +1,101 @@
+name: CSPM Security Scan
+
+on:
+  push:
+    branches: [main, master]
+    paths: ['terraform/**', '**.tf']
+  pull_request:
+    branches: [main, master]
+    paths: ['terraform/**', '**.tf']
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  terraform-security-scan:
+    name: 🛡️ Terraform Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run CSPM Terraform Scanner
+        id: scan
+        run: |
+          echo "## 🛡️ CSPM Terraform Security Scan" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          python scripts/terraform-scanner.py terraform/ || true
+          
+          if [ -f terraform/security-scan-results.md ]; then
+            cat terraform/security-scan-results.md >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ No security issues found!" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request' && hashFiles('terraform/security-scan-results.md') != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reportPath = 'terraform/security-scan-results.md';
+            
+            if (fs.existsSync(reportPath)) {
+              const body = fs.readFileSync(reportPath, 'utf8');
+              
+              // Find existing comment
+              const comments = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+              });
+              
+              const existing = comments.data.find(c => 
+                c.user.login === 'github-actions[bot]' && 
+                c.body.includes('CSPM Security Scan')
+              );
+              
+              if (existing) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existing.id,
+                  body: body,
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  body: body,
+                });
+              }
+            }
+
+  python-tests:
+    name: 🧪 Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install pytest boto3 fpdf2
+
+      - name: Run tests
+        run: |
+          pytest tests/ -v --tb=short
