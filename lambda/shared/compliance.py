@@ -16,7 +16,7 @@ FRAMEWORKS = {
         "url": "https://www.cisecurity.org/benchmark/amazon_web_services",
     },
     "SOC 2": {
-        "name": "SOC 2 Type II — Trust Services Criteria",
+        "name": "SOC 2 Type II - Trust Services Criteria",
         "url": "https://www.aicpa.org/soc2",
     },
     "PCI-DSS": {
@@ -44,7 +44,7 @@ COMPLIANCE_MAP = {
             {
                 "framework": "SOC 2",
                 "control_id": "CC6.1",
-                "title": "Logical and Physical Access Controls — Restrict data access to authorized users",
+                "title": "Logical and Physical Access Controls - Restrict data access to authorized users",
                 "severity": "HIGH",
                 "section": "Common Criteria",
             },
@@ -84,7 +84,7 @@ COMPLIANCE_MAP = {
             {
                 "framework": "SOC 2",
                 "control_id": "CC6.1",
-                "title": "Logical and Physical Access Controls — Encryption of data at rest",
+                "title": "Logical and Physical Access Controls - Encryption of data at rest",
                 "severity": "HIGH",
                 "section": "Common Criteria",
             },
