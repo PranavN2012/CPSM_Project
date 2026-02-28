@@ -338,9 +338,11 @@ class CSPMHandler(http.server.BaseHTTPRequestHandler):
     # ── Static File Server ──────────────────────────────────────────────
 
     def _serve_static(self, path):
-        # Map / to /index.html
+        # Map / to /dashboard.html to bust cache
         if path == "/":
-            path = "/index.html"
+            path = "/dashboard.html"
+        elif path == "/index.html":
+            path = "/dashboard.html"
 
         # Security: prevent directory traversal
         safe_path = os.path.normpath(path.lstrip("/"))
