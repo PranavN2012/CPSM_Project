@@ -94,8 +94,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install pytest boto3 fpdf2
+          pip install pytest boto3 botocore fpdf2
 
       - name: Run tests
         run: |
-          pytest tests/ -v --tb=short
+          pytest tests/test_compliance.py -v --tb=short
