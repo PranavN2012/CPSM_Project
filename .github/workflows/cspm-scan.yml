@@ -3,10 +3,8 @@ name: CSPM Security Scan
 on:
   push:
     branches: [main, master]
-    paths: ['terraform/**', '**.tf']
   pull_request:
     branches: [main, master]
-    paths: ['terraform/**', '**.tf']
 
 permissions:
   contents: read
