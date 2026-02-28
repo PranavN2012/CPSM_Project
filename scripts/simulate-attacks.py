@@ -162,7 +162,7 @@ def main():
     print()
 
     # Update Lambda env with Discord + GitHub creds
-    env_vars = {"DISCORD_WEBHOOK_URL": DISCORD_WEBHOOK}
+    env_vars = {"DISCORD_WEBHOOK_URL": DISCORD_WEBHOOK_URL}
     if GITHUB_TOKEN:
         env_vars["GITHUB_TOKEN"] = GITHUB_TOKEN
     if GITHUB_REPO:
