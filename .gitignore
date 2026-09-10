@@ -12,6 +12,10 @@ venv/
 .venv/
 env/
 
+# Node / Vite (frontend/)
+node_modules/
+frontend/dist/
+
 # Docker volumes
 volume/
 docker-data/
@@ -44,3 +48,7 @@ terraform/builds/*.zip
 
 # Security scan results (regenerated)
 security-scan-results.md
+
+# Secrets — never commit real API keys
+.env
+.env.local

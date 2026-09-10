@@ -96,7 +96,7 @@ python scripts/deploy-lambdas.py
 # 4. Start the dashboard
 python scripts/local-api-server.py
 
-# 5. Open http://localhost:3000
+# 5. Open http://localhost:3001
 
 # 6. Simulate attacks (in another terminal)
 python scripts/simulate-attacks.py

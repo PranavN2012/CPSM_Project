@@ -1,0 +1,1479 @@
+[
+  {
+    "scenario_id": "GB-01",
+    "family": "s3",
+    "trap": false,
+    "note": "",
+    "input": {
+      "event_id": "gb-01",
+      "timestamp": "2026-06-14T02:10:00Z",
+      "vulnerability_type": "S3 Public Access",
+      "severity": "CRITICAL",
+      "bucket_name": "halcyon-customer-pii-store",
+      "account_id": "700100200300",
+      "region": "us-east-1",
+      "status": "NON_COMPLIANT",
+      "nlp_summary": "Public access block was disabled on the customer PII store bucket at 2 AM Sunday."
+    },
+    "ground_truth": {
+      "anomaly": true,
+      "technique": "UNKNOWN",
+      "blast_radius": "HIGH",
+      "decision": "escalate_to_human",
+      "rationale": "Public S3 exposure is a state, not an ATT&CK technique (established precedent from the main eval \u2014 none of the 30 KB techniques cleanly describe 'left open', so UNKNOWN is the conceptually correct answer, not a hedge). The bucket itself is tagged production+pii, so resource_exposure_severity should read HIGH. No policy_fix_context is provided (a public-access-block setting isn't an IAM policy problem Layer 4 can draft against), so the correct decision is escalation, not an auto-fix attempt the pipeline has no mechanism for."
+    },
+    "model_output": {
+      "anomaly": true,
+      "anomaly_score": 0.5248,
+      "technique": "UNKNOWN",
+      "blast_radius": "HIGH",
+      "decision": "escalate_to_human",
+      "rationale": "The anomaly has a high blast radius severity and impacts a critical resource, but the technique is unknown with low confidence. Auto-fix is not possible, and more context may still be insufficient for safe remediation. Immediate human expertise is required to investigate and respond."
+    },
+    "verification": {},
+    "scoring": {
+      "anomaly_correct": true,
+      "anomaly_scorable": true,
+      "technique_correct": true,
+      "blast_radius_correct": true,
+      "decision_correct": true
+    },
+    "crashed": false,
+    "error": null
+  },
+  {
+    "scenario_id": "GB-02",
+    "family": "s3",
+    "trap": true,
+    "note": "Broad exposure on a genuinely low-value dev/synthetic resource.",
+    "input": {
+      "event_id": "gb-02",
+      "timestamp": "2026-06-10T15:20:00Z",
+      "vulnerability_type": "S3 Public Access",
+      "severity": "CRITICAL",
+      "bucket_name": "halcyon-dev-scratch-bucket",
+      "account_id": "700100200300",
+      "region": "us-east-1",
+      "status": "NON_COMPLIANT",
+      "nlp_summary": "Public access block was disabled on a developer scratch bucket during normal business hours."
+    },
+    "ground_truth": {
+      "anomaly": "borderline, leaning False",
+      "technique": "N/A (short-circuit expected)",
+      "blast_radius": "N/A (short-circuit expected)",
+      "decision": [
+        "monitor_only",
+        "escalate_to_human"
+      ],
+      "rationale": "Business-hours weekday, no prod-keyword match in 'halcyon-dev-scratch-bucket', on a bucket with no criticality tags. Layer 1's severity_encoded feature (CRITICAL label) pulls the other way, hence 'borderline' rather than a confident False. If the model does flag it anomalous, the CORRECT downstream answer is still low urgency (blast radius LOW, no auto-fix needed) since the bucket is genuinely low-value \u2014 that's the actual point of this trap case."
+    },
+    "model_output": {
+      "anomaly": false,
+      "anomaly_score": 0.3991,
+      "technique": null,
+      "blast_radius": null,
+      "decision": "monitor_only",
+      "rationale": "Below the anomaly threshold."
+    },
+    "verification": {},
+    "scoring": {
+      "anomaly_correct": null,
+      "anomaly_scorable": false,
+      "technique_correct": true,
+      "blast_radius_correct": true,
+      "decision_correct": true
+    },
+    "crashed": false,
+    "error": null
+  },
+  {
+    "scenario_id": "GB-03",
+    "family": "s3",
+    "trap": true,
+    "note": "Narrow-sounding exposure on a high-value deploy-artifacts bucket (supply-chain risk).",
+    "input": {
+      "event_id": "gb-03",
+      "timestamp": "2026-06-13T03:40:00Z",
+      "vulnerability_type": "S3 Public Access",
+      "severity": "CRITICAL",
+      "bucket_name": "halcyon-deploy-artifacts",
+      "account_id": "700100200300",
+      "region": "us-east-1",
+      "status": "NON_COMPLIANT",
+      "nlp_summary": "Public access block was disabled on the CI/CD build-artifacts bucket at 3:40 AM Saturday."
+    },
+    "ground_truth": {
+      "anomaly": true,
+      "technique": "UNKNOWN",
+      "blast_radius": "HIGH",
+      "decision": "escalate_to_human",
+      "rationale": "Off-hours (Sat 3:40 AM). The deploy-artifacts bucket is tagged 'admin' (a real CRITICAL_TAGS match) despite the action itself sounding minor \u2014 the trap is testing whether the system's severity correctly reflects supply-chain risk, not just the word 'public access'. No policy_fix_context (not an IAM problem) -> escalate."
+    },
+    "model_output": {
+      "anomaly": true,
+      "anomaly_score": 0.4808,
+      "technique": "UNKNOWN",
+      "blast_radius": "HIGH",
+      "decision": "escalate_to_human",
+      "rationale": "The anomaly has a high blast radius with critical resources impacted and a HIGH severity rating. Classification confidence is low and the technique is unknown, making automated remediation unsafe. Since auto-fix is not possible, the safest response is to involve a human analyst for detailed investigation."
+    },
+    "verification": {},
+    "scoring": {
+      "anomaly_correct": true,
+      "anomaly_scorable": true,
+      "technique_correct": true,
+      "blast_radius_correct": true,
+      "decision_correct": true
+    },
+    "crashed": false,
+    "error": null
+  },
+  {
+    "scenario_id": "GB-04",
+    "family": "s3",
+    "trap": false,
+    "note": "",
+    "input": {
+      "event_id": "gb-04",
+      "timestamp": "2026-06-11T16:05:00Z",
+      "vulnerability_type": "S3 Encryption",
+      "severity": "MEDIUM",
+      "bucket_name": "halcyon-partner-export-queue",
+      "account_id": "700100200300",
+      "region": "us-east-1",
+      "status": "NON_COMPLIANT",
+      "nlp_summary": "Server-side encryption is disabled on the bucket used to stage exports for a third-party partner integration."
+    },
+    "ground_truth": {
+      "anomaly": "borderline, leaning False",
+      "technique": "N/A (short-circuit expected)",
+      "blast_radius": "N/A if not anomalous; HIGH if it is (bucket tagged production)",
+      "decision": [
+        "monitor_only",
+        "escalate_to_human"
+      ],
+      "rationale": "MEDIUM severity, business hours, no strong keyword match. If it does cross the anomaly threshold, blast radius should read HIGH via the bucket's own 'production' tag (resource_exposure_severity) \u2014 this is the direct test of 'severity should not simply follow the MEDIUM label'."
+    },
+    "model_output": {
+      "anomaly": false,
+      "anomaly_score": 0.3933,
+      "technique": null,
+      "blast_radius": null,
+      "decision": "monitor_only",
+      "rationale": "Below the anomaly threshold."
+    },
+    "verification": {},
+    "scoring": {
+      "anomaly_correct": null,
+      "anomaly_scorable": false,
+      "technique_correct": true,
+      "blast_radius_correct": true,
+      "decision_correct": true
+    },
+    "crashed": false,
+    "error": null
+  },
+  {
+    "scenario_id": "GB-05",
+    "family": "iam",
+    "trap": false,
+    "note": "",
+    "input": {
+      "event_id": "gb-05",
+      "timestamp": "2026-06-14T04:15:00Z",
+      "vulnerability_type": "IAM Audit",
+      "severity": "CRITICAL",
+      "bucket_name": "wildcard-assume-role",
+      "account_id": "700100200300",
+      "region": "us-east-1",
+      "status": "IAM_OVERPERMISSIVE",
+      "principal": "halcyon-onboarding-role",
+      "nlp_summary": "The new-hire onboarding automation role was granted unrestricted sts:AssumeRole onto the CI/CD deploy pipeline role.",
+      "policy_fix_context": {
+        "current_policy": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": "s3:GetObject",
+              "Resource": "arn:aws:s3:::halcyon-internal-wiki-assets/*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": "sts:AssumeRole",
+              "Resource": "*"
+            }
+          ]
+        },
+        "offending_action": "sts:AssumeRole",
+        "offending_resource": "arn:aws:iam::700100200300:role/halcyon-deploy-pipeline-role",
+        "must_still_allow": [
+          [
+            "s3:GetObject",
+            "arn:aws:s3:::halcyon-internal-wiki-assets/onboarding-guide.pdf"
+          ]
+        ]
+      }
+    },
+    "ground_truth": {
+      "anomaly": true,
+      "technique": "T1098",
+      "blast_radius": "CRITICAL",
+      "decision": "attempt_auto_fix",
+      "required_access": [
+        [
+          "s3:GetObject",
+          "arn:aws:s3:::halcyon-internal-wiki-assets/onboarding-guide.pdf"
+        ]
+      ],
+      "forbidden_access": [
+        [
+          "sts:AssumeRole",
+          "arn:aws:iam::700100200300:role/halcyon-deploy-pipeline-role"
+        ]
+      ],
+      "rationale": "Off-hours, CRITICAL, unrestricted AssumeRole onto an admin-tagged role that reaches 2+ critical resources (verified by direct graph traversal: reachable={internal-wiki-assets, deploy-pipeline-role, deploy-artifacts, billing-records}, critical={deploy-pipeline-role, deploy-artifacts, billing-records} -> CRITICAL). Established precedent (main eval) maps assume-role-chain IAM findings to T1098."
+    },
+    "model_output": {
+      "anomaly": true,
+      "anomaly_score": 0.4743,
+      "technique": "T1098",
+      "blast_radius": "CRITICAL",
+      "decision": "attempt_auto_fix",
+      "rationale": "The incident has a critical blast radius and high priority, but an automated remediation is available (can_auto_fix is true). Attempting an auto-fix provides immediate containment while preserving the ability to involve a human if the fix fails."
+    },
+    "verification": {
+      "policy_valid": true,
+      "vulnerability_removed": true,
+      "required_access_preserved": true,
+      "safe_fix": true,
+      "agent_reported_test_passed": true
+    },
+    "scoring": {
+      "anomaly_correct": true,
+      "anomaly_scorable": true,
+      "technique_correct": true,
+      "blast_radius_correct": true,
+      "decision_correct": true,
+      "remediation_safe": true
+    },
+    "crashed": false,
+    "error": null
+  },
+  {
+    "scenario_id": "GB-06",
+    "family": "iam",
+    "trap": true,
+    "note": "Legitimate service role with an unrelated iam:* overreach \u2014 must be narrowed, not deleted.",
+    "input": {
+      "event_id": "gb-06",
+      "timestamp": "2026-06-13T05:00:00Z",
+      "vulnerability_type": "IAM Audit",
+      "severity": "HIGH",
+      "bucket_name": "iam-wildcard-billing-role",
+      "account_id": "700100200300",
+      "region": "us-east-1",
+      "status": "IAM_OVERPERMISSIVE",
+      "principal": "halcyon-billing-service-role",
+      "nlp_summary": "The billing service role, which should only read billing records and secrets, was also granted iam:* \u2014 full IAM administration.",
+      "policy_fix_context": {
+        "current_policy": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": "iam:*",
+              "Resource": "*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": "dynamodb:GetItem",
+              "Resource": [
+                "arn:aws:dynamodb:us-east-1:700100200300:table/halcyon-billing-records",
+                "arn:aws:dynamodb:us-east-1:700100200300:table/halcyon-secrets-vault"
+              ]
+            }
+          ]
+        },
+        "offending_action": "iam:CreateUser",
+        "offending_resource": "*",
+        "must_still_allow": [
+          [
+            "dynamodb:GetItem",
+            "arn:aws:dynamodb:us-east-1:700100200300:table/halcyon-billing-records"
+          ],
+          [
+            "dynamodb:GetItem",
+            "arn:aws:dynamodb:us-east-1:700100200300:table/halcyon-secrets-vault"
+          ]
+        ]
+      }
+    },
+    "ground_truth": {
+      "anomaly": true,
+      "technique": "T1098",
+      "blast_radius": "HIGH",
+      "decision": "attempt_auto_fix",
+      "required_access": [
+        [
+          "dynamodb:GetItem",
+          "arn:aws:dynamodb:us-east-1:700100200300:table/halcyon-billing-records"
+        ],
+        [
+          "dynamodb:GetItem",
+          "arn:aws:dynamodb:us-east-1:700100200300:table/halcyon-secrets-vault"
+        ]
+      ],
+      "forbidden_access": [
+        [
+          "iam:CreateUser",
+          "*"
+        ]
+      ],
+      "rationale": "Off-hours, HIGH severity. Entry billing-service-role reaches billing-records (critical) and secrets-vault (not critical by tag) -> HIGH by direct traversal. The correct fix narrows away iam:* while preserving both legitimate dynamodb reads \u2014 this is the 'narrow, don't delete' trap."
+    },
+    "model_output": {
+      "anomaly": true,
+      "anomaly_score": 0.4816,
+      "technique": "T1098",
+      "blast_radius": "HIGH",
+      "decision": "attempt_auto_fix",
+      "rationale": "The incident has a HIGH severity blast radius affecting a critical resource, with a priority score indicating urgency (P2). Since the system indicates auto\u2011remediation is possible (can_auto_fix = true) and the available action list includes it, attempting an automatic fix is the most appropriate immediate response."
+    },
+    "verification": {
+      "policy_valid": true,
+      "vulnerability_removed": true,
+      "required_access_preserved": true,
+      "safe_fix": true,
+      "agent_reported_test_passed": true
+    },
+    "scoring": {
+      "anomaly_correct": true,
+      "anomaly_scorable": true,
+      "technique_correct": true,
+      "blast_radius_correct": true,
+      "decision_correct": true,
+      "remediation_safe": true
+    },
+    "crashed": false,
+    "error": null
+  },
+  {
+    "scenario_id": "GB-07",
+    "family": "iam",
+    "trap": true,
+    "note": "Wildcard (CRITICAL by label) on a genuinely low-value marketing bucket \u2014 severity should not simply follow the label.",
+    "input": {
+      "event_id": "gb-07",
+      "timestamp": "2026-06-10T13:10:00Z",
+      "vulnerability_type": "IAM Audit",
+      "severity": "CRITICAL",
+      "bucket_name": "iam-wildcard-support-agent",
+      "account_id": "700100200300",
+      "region": "us-east-1",
+      "status": "IAM_OVERPERMISSIVE",
+      "principal": "halcyon-support-agent-user",
+      "nlp_summary": "A support agent's account was granted s3:* on the marketing-assets bucket instead of the intended read-only access.",
+      "policy_fix_context": {
+        "current_policy": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": "s3:*",
+              "Resource": "arn:aws:s3:::halcyon-marketing-assets/*"
+            }
+          ]
+        },
+        "offending_action": "s3:DeleteObject",
+        "offending_resource": "arn:aws:s3:::halcyon-marketing-assets/*",
+        "must_still_allow": [
+          [
+            "s3:GetObject",
+            "arn:aws:s3:::halcyon-marketing-assets/banner.png"
+          ]
+        ]
+      }
+    },
+    "ground_truth": {
+      "anomaly": "borderline, leaning True (CRITICAL severity_encoded is a real feature; business hours pulls the other way)",
+      "technique": "T1098",
+      "blast_radius": "LOW",
+      "decision": "attempt_auto_fix",
+      "required_access": [
+        [
+          "s3:GetObject",
+          "arn:aws:s3:::halcyon-marketing-assets/banner.png"
+        ]
+      ],
+      "forbidden_access": [
+        [
+          "s3:DeleteObject",
+          "arn:aws:s3:::halcyon-marketing-assets/*"
+        ]
+      ],
+      "rationale": "The central trap: CRITICAL label, but marketing-assets is untagged (no criticality) and support-agent-user's only edge in the graph is to customer-pii-store, not marketing-assets \u2014 this specific grant has no path to anything critical, so LOW blast radius is correct. A safe narrowing fix is still appropriate here (auto-fix isn't purely blast-radius-gated) \u2014 this case tests whether the system inappropriately escalates everything CRITICAL-labeled regardless of actual impact."
+    },
+    "model_output": {
+      "anomaly": false,
+      "anomaly_score": 0.4393,
+      "technique": null,
+      "blast_radius": null,
+      "decision": "monitor_only",
+      "rationale": "Below the anomaly threshold."
+    },
+    "verification": {},
+    "scoring": {
+      "anomaly_correct": null,
+      "anomaly_scorable": false,
+      "technique_correct": true,
+      "blast_radius_correct": true,
+      "decision_correct": false
+    },
+    "crashed": false,
+    "error": null
+  },
+  {
+    "scenario_id": "GB-08",
+    "family": "iam",
+    "trap": true,
+    "note": "Admin-tagged CI role with an added iam:PassRole('*') \u2014 cross-service privilege-escalation risk hiding inside an already-trusted role.",
+    "input": {
+      "event_id": "gb-08",
+      "timestamp": "2026-06-14T01:30:00Z",
+      "vulnerability_type": "IAM Audit",
+      "severity": "HIGH",
+      "bucket_name": "iam-passrole-deploy-pipeline",
+      "account_id": "700100200300",
+      "region": "us-east-1",
+      "status": "IAM_OVERPERMISSIVE",
+      "principal": "halcyon-deploy-pipeline-role",
+      "nlp_summary": "The CI/CD deploy pipeline role, already administering build artifacts, was also granted iam:PassRole on all roles.",
+      "policy_fix_context": {
+        "current_policy": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": "s3:*",
+              "Resource": "arn:aws:s3:::halcyon-deploy-artifacts/*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": "iam:PassRole",
+              "Resource": "*"
+            }
+          ]
+        },
+        "offending_action": "iam:PassRole",
+        "offending_resource": "*",
+        "must_still_allow": [
+          [
+            "s3:PutObject",
+            "arn:aws:s3:::halcyon-deploy-artifacts/build-42.zip"
+          ]
+        ]
+      }
+    },
+    "ground_truth": {
+      "anomaly": true,
+      "technique": "T1098",
+      "blast_radius": "CRITICAL",
+      "decision": "attempt_auto_fix",
+      "required_access": [
+        [
+          "s3:PutObject",
+          "arn:aws:s3:::halcyon-deploy-artifacts/build-42.zip"
+        ]
+      ],
+      "forbidden_access": [
+        [
+          "iam:PassRole",
+          "*"
+        ]
+      ],
+      "rationale": "Off-hours, HIGH severity. Entry deploy-pipeline-role reaches 2 critical resources directly (deploy-artifacts, billing-records) -> CRITICAL by direct traversal, independent of this specific added permission. PassRole('*') on an already-admin role is a textbook privilege-escalation vector."
+    },
+    "model_output": {
+      "anomaly": true,
+      "anomaly_score": 0.517,
+      "technique": "T1098",
+      "blast_radius": "CRITICAL",
+      "decision": "attempt_auto_fix",
+      "rationale": "The anomaly indicates a potentially serious account manipulation with critical resources impacted. Since an automatic remediation is available (can_auto_fix is true) and the priority is high, attempting an auto-fix can quickly contain the threat while minimizing manual response time."
+    },
+    "verification": {
+      "policy_valid": true,
+      "vulnerability_removed": true,
+      "required_access_preserved": true,
+      "safe_fix": true,
+      "agent_reported_test_passed": true
+    },
+    "scoring": {
+      "anomaly_correct": true,
+      "anomaly_scorable": true,
+      "technique_correct": true,
+      "blast_radius_correct": true,
+      "decision_correct": true,
+      "remediation_safe": true
+    },
+    "crashed": false,
+    "error": null
+  },
+  {
+    "scenario_id": "GB-09",
+    "family": "iam",
+    "trap": false,
+    "note": "",
+    "input": {
+      "event_id": "gb-09",
+      "timestamp": "2026-06-13T04:50:00Z",
+      "vulnerability_type": "IAM Audit",
+      "severity": "CRITICAL",
+      "bucket_name": "iam-dormant-legacy-wildcard",
+      "account_id": "700100200300",
+      "region": "us-east-1",
+      "status": "IAM_OVERPERMISSIVE",
+      "principal": "halcyon-legacy-reporting-role",
+      "nlp_summary": "A dormant legacy reporting role, still active but unused for months, holds a forgotten wildcard s3:* grant.",
+      "policy_fix_context": {
+        "current_policy": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": "s3:*",
+              "Resource": "*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": "dynamodb:GetItem",
+              "Resource": "arn:aws:dynamodb:us-east-1:700100200300:table/halcyon-audit-log-archive"
+            }
+          ]
+        },
+        "offending_action": "s3:PutBucketPolicy",
+        "offending_resource": "*",
+        "must_still_allow": [
+          [
+            "dynamodb:GetItem",
+            "arn:aws:dynamodb:us-east-1:700100200300:table/halcyon-audit-log-archive"
+          ]
+        ]
+      }
+    },
+    "ground_truth": {
+      "anomaly": true,
+      "technique": "T1098",
+      "blast_radius": "CRITICAL",
+      "decision": "attempt_auto_fix",
+      "required_access": [
+        [
+          "dynamodb:GetItem",
+          "arn:aws:dynamodb:us-east-1:700100200300:table/halcyon-audit-log-archive"
+        ]
+      ],
+      "forbidden_access": [
+        [
+          "s3:PutBucketPolicy",
+          "*"
+        ]
+      ],
+      "rationale": "Off-hours, CRITICAL. Entry legacy-reporting-role reaches audit-log-archive directly (critical) plus, via the 2-hop assume of partner-sync-role, partner-export-queue (also critical) -> 2 critical resources -> CRITICAL by direct traversal."
+    },
+    "model_output": {
+      "anomaly": true,
+      "anomaly_score": 0.5063,
+      "technique": "T1098",
+      "blast_radius": "CRITICAL",
+      "decision": "attempt_auto_fix",
+      "rationale": "The anomaly indicates a potentially serious account manipulation with critical resource impact, but the system reports that an automatic remediation is possible (can_auto_fix=true). Given the moderate priority tier (P2) and the availability of a safe auto-fix, the best immediate response is to attempt the automated fix before escalating."
+    },
+    "verification": {
+      "policy_valid": true,
+      "vulnerability_removed": true,
+      "required_access_preserved": true,
+      "safe_fix": true,
+      "agent_reported_test_passed": true
+    },
+    "scoring": {
+      "anomaly_correct": true,
+      "anomaly_scorable": true,
+      "technique_correct": true,
+      "blast_radius_correct": true,
+      "decision_correct": true,
+      "remediation_safe": true
+    },
+    "crashed": false,
+    "error": null
+  },
+  {
+    "scenario_id": "GB-10",
+    "family": "sg",
+    "trap": false,
+    "note": "",
+    "input": {
+      "event_id": "gb-10",
+      "timestamp": "2026-06-14T03:05:00Z",
+      "vulnerability_type": "Security Group Open SSH",
+      "severity": "HIGH",
+      "bucket_name": "halcyon-web-tier-sg",
+      "account_id": "700100200300",
+      "region": "us-east-1",
+      "status": "NON_COMPLIANT",
+      "nlp_summary": "Security group halcyon-web-tier-sg was updated to allow SSH (port 22) from 0.0.0.0/0."
+    },
+    "ground_truth": {
+      "anomaly": true,
+      "technique": "UNKNOWN",
+      "blast_radius": "LOW (honest default \u2014 SG nodes aren't in the graph, no principal given)",
+      "decision": "escalate_to_human",
+      "rationale": "Off-hours, HIGH. Open-port exposure is a state, not an ATT&CK action (same reasoning as GB-01/03) -> UNKNOWN expected. No graph entry point exists for a security-group finding in this schema, so LOW is the correct, honest answer here, not a failure. No policy_fix_context (SG rule changes aren't Layer 4's IAM-policy domain) -> escalate."
+    },
+    "model_output": {
+      "anomaly": true,
+      "anomaly_score": 0.5031,
+      "technique": "UNKNOWN",
+      "blast_radius": "LOW",
+      "decision": "gather_more_context",
+      "rationale": "The anomaly has a moderate score and low confidence classification with unknown technique. While the blast radius and priority are low, the system cannot auto-fix and the lack of clear information warrants additional data collection before deciding on escalation or monitoring."
+    },
+    "verification": {},
+    "scoring": {
+      "anomaly_correct": true,
+      "anomaly_scorable": true,
+      "technique_correct": true,
+      "blast_radius_correct": true,
+      "decision_correct": false
+    },
+    "crashed": false,
+    "error": null
+  },
+  {
+    "scenario_id": "GB-11",
+    "family": "sg",
+    "trap": true,
+    "note": "Vulnerability label says 'Open SSH' but the narrative describes Postgres (5432) \u2014 tests whether classification reasons from context, not just the label.",
+    "input": {
+      "event_id": "gb-11",
+      "timestamp": "2026-06-13T02:20:00Z",
+      "vulnerability_type": "Security Group Open SSH",
+      "severity": "HIGH",
+      "bucket_name": "halcyon-db-tier-sg",
+      "account_id": "700100200300",
+      "region": "us-east-1",
+      "status": "NON_COMPLIANT",
+      "nlp_summary": "Security group halcyon-db-tier-sg was updated to allow inbound PostgreSQL (port 5432) from 0.0.0.0/0."
+    },
+    "ground_truth": {
+      "anomaly": true,
+      "technique": "UNKNOWN",
+      "blast_radius": "LOW (honest default)",
+      "decision": "escalate_to_human",
+      "rationale": "Deliberately mislabeled port (narrative says Postgres/5432, vulnerability_type field still says 'Open SSH') \u2014 tests whether the narration-based classifier is thrown off by the label mismatch. Same expected shape as GB-10 either way, since both resolve to UNKNOWN/escalate regardless of the specific port."
+    },
+    "model_output": {
+      "anomaly": true,
+      "anomaly_score": 0.5209,
+      "technique": "UNKNOWN",
+      "blast_radius": "LOW",
+      "decision": "gather_more_context",
+      "rationale": "The anomaly has a moderate score and low confidence classification with unknown technique, but the blast radius is low and priority is P4. Auto-fix is not possible, and immediate escalation may be unnecessary. Gathering additional context will help clarify the nature of the event before deciding on further action."
+    },
+    "verification": {},
+    "scoring": {
+      "anomaly_correct": true,
+      "anomaly_scorable": true,
+      "technique_correct": true,
+      "blast_radius_correct": true,
+      "decision_correct": false
+    },
+    "crashed": false,
+    "error": null
+  },
+  {
+    "scenario_id": "GB-12",
+    "family": "sg",
+    "trap": true,
+    "note": "Should NOT trigger \u2014 properly scoped to a corporate CIDR, not 0.0.0.0/0. False-positive-resistance check.",
+    "input": {
+      "event_id": "gb-12",
+      "timestamp": "2026-06-10T11:15:00Z",
+      "vulnerability_type": "Security Group Open SSH",
+      "severity": "LOW",
+      "bucket_name": "halcyon-internal-ci-sg",
+      "account_id": "700100200300",
+      "region": "us-east-1",
+      "status": "COMPLIANT",
+      "nlp_summary": "Security group halcyon-internal-ci-sg allows SSH (port 22) only from the corporate CIDR 10.0.5.0/24."
+    },
+    "ground_truth": {
+      "anomaly": false,
+      "technique": "N/A (short-circuit expected)",
+      "blast_radius": "N/A (short-circuit expected)",
+      "decision": "monitor_only",
+      "rationale": "Business hours, LOW severity, properly scoped to a corporate CIDR (not 0.0.0.0/0) \u2014 this should read as a non-event. The false-positive-resistance check: does the system correctly NOT escalate something that isn't actually dangerous just because the vulnerability_type field says 'Open SSH'?"
+    },
+    "model_output": {
+      "anomaly": false,
+      "anomaly_score": 0.4463,
+      "technique": null,
+      "blast_radius": null,
+      "decision": "monitor_only",
+      "rationale": "Below the anomaly threshold."
+    },
+    "verification": {},
+    "scoring": {
+      "anomaly_correct": true,
+      "anomaly_scorable": true,
+      "technique_correct": true,
+      "blast_radius_correct": true,
+      "decision_correct": true
+    },
+    "crashed": false,
+    "error": null
+  },
+  {
+    "scenario_id": "GB-13",
+    "family": "sg",
+    "trap": true,
+    "note": "Payment-context resource name should strongly signal prod-keyword risk even though the vuln label/port don't literally say 'payment'.",
+    "input": {
+      "event_id": "gb-13",
+      "timestamp": "2026-06-14T02:45:00Z",
+      "vulnerability_type": "Security Group Open SSH",
+      "severity": "CRITICAL",
+      "bucket_name": "halcyon-payment-gateway-sg",
+      "account_id": "700100200300",
+      "region": "us-east-1",
+      "status": "NON_COMPLIANT",
+      "nlp_summary": "Security group halcyon-payment-gateway-sg was updated to allow inbound RDP (port 3389) from 0.0.0.0/0."
+    },
+    "ground_truth": {
+      "anomaly": true,
+      "technique": "UNKNOWN",
+      "blast_radius": "LOW (honest default)",
+      "decision": "escalate_to_human",
+      "rationale": "Off-hours, CRITICAL, and 'payment' appears in the bucket name (a real PROD_KEYWORDS match) even though the vulnerability label/port don't literally mention it \u2014 should still read as clearly anomalous via that signal."
+    },
+    "model_output": {
+      "anomaly": true,
+      "anomaly_score": 0.5458,
+      "technique": "UNKNOWN",
+      "blast_radius": "LOW",
+      "decision": "gather_more_context",
+      "rationale": "The anomaly has a moderate score and unknown technique with low confidence, but the blast radius is low and priority is P4. Auto-fix is not possible, and escalation may be premature. Gathering additional context will help clarify the nature of the event before deciding on further response."
+    },
+    "verification": {},
+    "scoring": {
+      "anomaly_correct": true,
+      "anomaly_scorable": true,
+      "technique_correct": true,
+      "blast_radius_correct": true,
+      "decision_correct": false
+    },
+    "crashed": false,
+    "error": null
+  },
+  {
+    "scenario_id": "GB-14",
+    "family": "dynamodb",
+    "trap": true,
+    "note": "MEDIUM label on a table that's actually production+payment+pii \u2014 severity-vs-label mismatch, the central test of Layer 5's design.",
+    "input": {
+      "event_id": "gb-14",
+      "timestamp": "2026-06-14T03:30:00Z",
+      "vulnerability_type": "DynamoDB Unencrypted",
+      "severity": "MEDIUM",
+      "bucket_name": "halcyon-billing-records",
+      "account_id": "700100200300",
+      "region": "us-east-1",
+      "status": "NON_COMPLIANT",
+      "nlp_summary": "Server-side encryption is disabled on the billing records table."
+    },
+    "ground_truth": {
+      "anomaly": "borderline, leaning False (no PROD_KEYWORDS substring match in 'halcyon-billing-records' despite genuine real-world sensitivity)",
+      "technique": "N/A if not anomalous; UNKNOWN if it is",
+      "blast_radius": "N/A if not anomalous; HIGH if it is (table tagged production+payment+pii)",
+      "decision": [
+        "monitor_only",
+        "escalate_to_human"
+      ],
+      "rationale": "This is the honest, disclosed-in-advance uncertain case: MEDIUM severity + off-hours + a genuinely critical resource, but no literal keyword-list match in the name, similar to how demo-3/demo-4 in GROWTH_PLAN.md Phase 0 landed just under the anomaly threshold. Recorded as a genuine prediction, not adjusted after seeing the result."
+    },
+    "model_output": {
+      "anomaly": true,
+      "anomaly_score": 0.5046,
+      "technique": "UNKNOWN",
+      "blast_radius": "HIGH",
+      "decision": "escalate_to_human",
+      "rationale": "The anomaly has a high severity blast radius affecting a critical resource, with unknown technique and low confidence classification. Auto-fix is not possible, and the uncertainty combined with potential impact warrants immediate human investigation."
+    },
+    "verification": {},
+    "scoring": {
+      "anomaly_correct": null,
+      "anomaly_scorable": false,
+      "technique_correct": true,
+      "blast_radius_correct": true,
+      "decision_correct": true
+    },
+    "crashed": false,
+    "error": null
+  },
+  {
+    "scenario_id": "GB-15",
+    "family": "dynamodb",
+    "trap": false,
+    "note": "",
+    "input": {
+      "event_id": "gb-15",
+      "timestamp": "2026-06-11T10:40:00Z",
+      "vulnerability_type": "DynamoDB Unencrypted",
+      "severity": "MEDIUM",
+      "bucket_name": "halcyon-audit-log-archive",
+      "account_id": "700100200300",
+      "region": "us-east-1",
+      "status": "NON_COMPLIANT",
+      "nlp_summary": "Server-side encryption is disabled on the compliance audit-log archive table."
+    },
+    "ground_truth": {
+      "anomaly": "borderline, leaning False",
+      "technique": "N/A if not anomalous",
+      "blast_radius": "N/A if not anomalous; HIGH if it is (table tagged production)",
+      "decision": [
+        "monitor_only",
+        "escalate_to_human"
+      ],
+      "rationale": "Business hours, MEDIUM severity, no keyword match ('audit-log-archive' isn't in PROD_KEYWORDS) \u2014 this is the genuinely low-real-risk case in the DynamoDB family (compliance logs, no direct PII), included as a contrast to GB-14/GB-16."
+    },
+    "model_output": {
+      "anomaly": true,
+      "anomaly_score": 0.4635,
+      "technique": "T1485",
+      "blast_radius": "HIGH",
+      "decision": "escalate_to_human",
+      "rationale": "The anomaly indicates a potentially high-impact data destruction event with high severity and a critical resource affected. Auto-fix is not possible, and confidence in the classification is moderate, requiring expert analysis to confirm and respond appropriately."
+    },
+    "verification": {},
+    "scoring": {
+      "anomaly_correct": null,
+      "anomaly_scorable": false,
+      "technique_correct": true,
+      "blast_radius_correct": true,
+      "decision_correct": true
+    },
+    "crashed": false,
+    "error": null
+  },
+  {
+    "scenario_id": "GB-16",
+    "family": "dynamodb",
+    "trap": true,
+    "note": "Resource name signals 'secret'/'vault' strongly (Layer 1 keyword feature) but isn't tagged with any of Layer 3's CRITICAL_TAGS words \u2014 probes a real, disclosed tension between the two layers.",
+    "input": {
+      "event_id": "gb-16",
+      "timestamp": "2026-06-14T04:00:00Z",
+      "vulnerability_type": "DynamoDB Unencrypted",
+      "severity": "MEDIUM",
+      "bucket_name": "halcyon-secrets-vault",
+      "account_id": "700100200300",
+      "region": "us-east-1",
+      "status": "NON_COMPLIANT",
+      "nlp_summary": "Server-side encryption is disabled on the table storing third-party API credentials."
+    },
+    "ground_truth": {
+      "anomaly": true,
+      "technique": "N/A if not anomalous; UNKNOWN if it is",
+      "blast_radius": "LOW (per the system's own CRITICAL_TAGS definition \u2014 'secret'/'credential' tags don't count, only production/pii/payment/admin do)",
+      "decision": [
+        "escalate_to_human",
+        "monitor_only"
+      ],
+      "rationale": "Deliberate probe of a real tension: 'secret' and 'vault' both appear in PROD_KEYWORDS, so Layer 1 should very likely flag this anomalous on keyword grounds alone \u2014 but Layer 3's severity check only recognizes 4 specific tag words, none of which this table carries, so blast radius mechanically reads LOW despite the resource genuinely holding API credentials. Expected outcome: Layer 1 correctly flags it, Layer 3/5 under-rate its real-world severity. This is recorded as an EXPECTED, disclosed system limitation, not scored as a pipeline failure."
+    },
+    "model_output": {
+      "anomaly": true,
+      "anomaly_score": 0.5492,
+      "technique": "T1555",
+      "blast_radius": "LOW",
+      "decision": "gather_more_context",
+      "rationale": "The detection has moderate anomaly score and low confidence (0.4621) for credential access, with low blast radius and P3 priority. Auto-fix is not possible, and the risk is not high enough to immediately escalate. Gathering additional context (e.g., user activity logs, source of the unusual time, event rate details) will help improve confidence before deciding on further response."
+    },
+    "verification": {},
+    "scoring": {
+      "anomaly_correct": true,
+      "anomaly_scorable": true,
+      "technique_correct": true,
+      "blast_radius_correct": true,
+      "decision_correct": false
+    },
+    "crashed": false,
+    "error": null
+  },
+  {
+    "scenario_id": "GB-17",
+    "family": "lambda",
+    "trap": false,
+    "note": "",
+    "input": {
+      "event_id": "gb-17",
+      "timestamp": "2026-06-13T03:15:00Z",
+      "vulnerability_type": "IAM Audit",
+      "severity": "CRITICAL",
+      "bucket_name": "lambda-passrole-checkout-fn",
+      "account_id": "700100200300",
+      "region": "us-east-1",
+      "status": "IAM_OVERPERMISSIVE",
+      "principal": "halcyon-checkout-fn-exec-role",
+      "nlp_summary": "The checkout Lambda function's execution role was granted lambda:UpdateFunctionCode('*') and iam:PassRole('*'), well beyond its billing-write needs.",
+      "policy_fix_context": {
+        "current_policy": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": "dynamodb:PutItem",
+              "Resource": "arn:aws:dynamodb:us-east-1:700100200300:table/halcyon-billing-records"
+            },
+            {
+              "Effect": "Allow",
+              "Action": "lambda:UpdateFunctionCode",
+              "Resource": "*"
+            }
+          ]
+        },
+        "offending_action": "lambda:UpdateFunctionCode",
+        "offending_resource": "*",
+        "must_still_allow": [
+          [
+            "dynamodb:PutItem",
+            "arn:aws:dynamodb:us-east-1:700100200300:table/halcyon-billing-records"
+          ]
+        ]
+      }
+    },
+    "ground_truth": {
+      "anomaly": true,
+      "technique": [
+        "T1098",
+        "UNKNOWN"
+      ],
+      "blast_radius": "HIGH",
+      "decision": "attempt_auto_fix",
+      "required_access": [
+        [
+          "dynamodb:PutItem",
+          "arn:aws:dynamodb:us-east-1:700100200300:table/halcyon-billing-records"
+        ]
+      ],
+      "forbidden_access": [
+        [
+          "lambda:UpdateFunctionCode",
+          "*"
+        ]
+      ],
+      "rationale": "Off-hours, CRITICAL. Entry checkout-fn-exec-role reaches billing-records directly (critical) -> HIGH by direct traversal. ATT&CK is genuinely ambiguous here (self-modifying Lambda code is closer to defense-evasion/persistence than classic account manipulation) \u2014 both T1098 and UNKNOWN are recorded as acceptable rather than forcing false precision."
+    },
+    "model_output": {
+      "anomaly": true,
+      "anomaly_score": 0.5161,
+      "technique": "T1098",
+      "blast_radius": "HIGH",
+      "decision": "attempt_auto_fix",
+      "rationale": "The anomaly has a high severity blast radius and can be automatically remediated. Confidence is moderate but the risk to a critical resource warrants immediate mitigation, and the system indicates auto\u2011fix is possible."
+    },
+    "verification": {
+      "policy_valid": true,
+      "vulnerability_removed": true,
+      "required_access_preserved": true,
+      "safe_fix": true,
+      "agent_reported_test_passed": true
+    },
+    "scoring": {
+      "anomaly_correct": true,
+      "anomaly_scorable": true,
+      "technique_correct": true,
+      "blast_radius_correct": true,
+      "decision_correct": true,
+      "remediation_safe": true
+    },
+    "crashed": false,
+    "error": null
+  },
+  {
+    "scenario_id": "GB-18",
+    "family": "lambda",
+    "trap": true,
+    "note": "Unnecessary dynamodb:* wildcard where only DeleteItem on one small table is actually needed.",
+    "input": {
+      "event_id": "gb-18",
+      "timestamp": "2026-06-14T02:55:00Z",
+      "vulnerability_type": "IAM Audit",
+      "severity": "HIGH",
+      "bucket_name": "lambda-wildcard-cleanup-fn",
+      "account_id": "700100200300",
+      "region": "us-east-1",
+      "status": "IAM_OVERPERMISSIVE",
+      "principal": "halcyon-scheduled-cleanup-fn-role",
+      "nlp_summary": "A scheduled cleanup Lambda's execution role holds dynamodb:* on all tables, but only ever deletes items from one temporary cache table.",
+      "policy_fix_context": {
+        "current_policy": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": "dynamodb:*",
+              "Resource": "*"
+            }
+          ]
+        },
+        "offending_action": "dynamodb:DeleteTable",
+        "offending_resource": "*",
+        "must_still_allow": [
+          [
+            "dynamodb:DeleteItem",
+            "arn:aws:dynamodb:us-east-1:700100200300:table/halcyon-tmp-cache-table"
+          ]
+        ]
+      }
+    },
+    "ground_truth": {
+      "anomaly": true,
+      "technique": "T1098",
+      "blast_radius": "LOW",
+      "decision": "attempt_auto_fix",
+      "required_access": [
+        [
+          "dynamodb:DeleteItem",
+          "arn:aws:dynamodb:us-east-1:700100200300:table/halcyon-tmp-cache-table"
+        ]
+      ],
+      "forbidden_access": [
+        [
+          "dynamodb:DeleteTable",
+          "*"
+        ]
+      ],
+      "rationale": "Off-hours, HIGH. tmp-cache-table is untagged, and it's the only resource cleanup-fn-role reaches -> LOW blast radius by direct traversal. A safe narrowing fix is still correct here, same as GB-07 \u2014 low blast radius doesn't mean 'don't fix', it means 'this one's low-urgency but still worth narrowing'."
+    },
+    "model_output": {
+      "anomaly": true,
+      "anomaly_score": 0.5227,
+      "technique": "T1098",
+      "blast_radius": "LOW",
+      "decision": "attempt_auto_fix",
+      "rationale": "The anomaly has a moderate score but low blast radius and low priority (P3). The detected technique (Account Manipulation) has only modest confidence and can be mitigated automatically. Since auto\u2011fix is permitted and the risk is low, attempting an automated remediation is appropriate before escalating."
+    },
+    "verification": {
+      "policy_valid": true,
+      "vulnerability_removed": true,
+      "required_access_preserved": true,
+      "safe_fix": true,
+      "agent_reported_test_passed": true
+    },
+    "scoring": {
+      "anomaly_correct": true,
+      "anomaly_scorable": true,
+      "technique_correct": true,
+      "blast_radius_correct": true,
+      "decision_correct": true,
+      "remediation_safe": true
+    },
+    "crashed": false,
+    "error": null
+  },
+  {
+    "scenario_id": "GB-19",
+    "family": "lambda",
+    "trap": true,
+    "note": "Should read as a non-issue \u2014 the role's only real permission is source-IP-restricted. False-positive-resistance check, and a fresh exercise of the Phase 7 condition-key handling.",
+    "input": {
+      "event_id": "gb-19",
+      "timestamp": "2026-06-10T09:50:00Z",
+      "vulnerability_type": "IAM Audit",
+      "severity": "LOW",
+      "bucket_name": "lambda-scoped-report-export-fn",
+      "account_id": "700100200300",
+      "region": "us-east-1",
+      "status": "COMPLIANT",
+      "principal": "halcyon-report-export-fn-role",
+      "nlp_summary": "The report-export Lambda's execution role has s3:GetObject on marketing-assets, restricted to the corporate office IP range via a policy condition."
+    },
+    "ground_truth": {
+      "anomaly": false,
+      "technique": "N/A (short-circuit expected)",
+      "blast_radius": "N/A (short-circuit expected)",
+      "decision": "monitor_only",
+      "rationale": "Business hours, LOW/COMPLIANT severity, and the role's only real permission is described as source-IP-restricted \u2014 should read as a non-issue. Also a fresh, non-copied exercise of the GROWTH_PLAN.md Phase 7 condition-key handling in a new narrative context."
+    },
+    "model_output": {
+      "anomaly": true,
+      "anomaly_score": 0.4774,
+      "technique": "UNKNOWN",
+      "blast_radius": "LOW",
+      "decision": "gather_more_context",
+      "rationale": "The anomaly has a moderate score and unknown technique with low confidence, but the blast radius is low and priority is P4. Auto-fix is not possible, and immediate escalation may be unnecessary. Gathering additional context will help clarify the nature of the high event rate before deciding on further response."
+    },
+    "verification": {},
+    "scoring": {
+      "anomaly_correct": false,
+      "anomaly_scorable": true,
+      "technique_correct": true,
+      "blast_radius_correct": true,
+      "decision_correct": false
+    },
+    "crashed": false,
+    "error": null
+  },
+  {
+    "scenario_id": "GB-20",
+    "family": "cross_service",
+    "trap": false,
+    "note": "",
+    "input": {
+      "event_id": "gb-20",
+      "timestamp": "2026-06-14T04:40:00Z",
+      "vulnerability_type": "IAM Audit",
+      "severity": "CRITICAL",
+      "bucket_name": "iam-crossservice-legacy-reporting",
+      "account_id": "700100200300",
+      "region": "us-east-1",
+      "status": "IAM_OVERPERMISSIVE",
+      "principal": "halcyon-legacy-reporting-role",
+      "nlp_summary": "The legacy reporting role can assume the partner-sync role, which in turn writes to the partner data-export queue \u2014 a 2-hop path from a forgotten service into partner-shared production data.",
+      "policy_fix_context": {
+        "current_policy": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": "dynamodb:GetItem",
+              "Resource": "arn:aws:dynamodb:us-east-1:700100200300:table/halcyon-audit-log-archive"
+            },
+            {
+              "Effect": "Allow",
+              "Action": "sts:AssumeRole",
+              "Resource": "*"
+            }
+          ]
+        },
+        "offending_action": "sts:AssumeRole",
+        "offending_resource": "arn:aws:iam::700100200300:role/halcyon-partner-sync-role",
+        "must_still_allow": [
+          [
+            "dynamodb:GetItem",
+            "arn:aws:dynamodb:us-east-1:700100200300:table/halcyon-audit-log-archive"
+          ]
+        ]
+      }
+    },
+    "ground_truth": {
+      "anomaly": true,
+      "technique": "T1098",
+      "blast_radius": "CRITICAL",
+      "decision": "attempt_auto_fix",
+      "required_access": [
+        [
+          "dynamodb:GetItem",
+          "arn:aws:dynamodb:us-east-1:700100200300:table/halcyon-audit-log-archive"
+        ]
+      ],
+      "forbidden_access": [
+        [
+          "sts:AssumeRole",
+          "arn:aws:iam::700100200300:role/halcyon-partner-sync-role"
+        ]
+      ],
+      "rationale": "Off-hours, CRITICAL. Same entry point/traversal as GB-09 (legacy-reporting-role) -> CRITICAL confirmed by direct traversal (2 critical resources reached across the 2-hop chain). Framed here specifically as the cross-service/multi-hop family representative."
+    },
+    "model_output": {
+      "anomaly": true,
+      "anomaly_score": 0.5245,
+      "technique": "T1098",
+      "blast_radius": "CRITICAL",
+      "decision": "attempt_auto_fix",
+      "rationale": "The anomaly indicates a potentially serious account manipulation (critical severity, resources impacted). Auto\u2011remediation is permitted (can_auto_fix=true) and can quickly contain the threat while further analysis proceeds, making it the preferred first response."
+    },
+    "verification": {
+      "policy_valid": true,
+      "vulnerability_removed": true,
+      "required_access_preserved": true,
+      "safe_fix": true,
+      "agent_reported_test_passed": true
+    },
+    "scoring": {
+      "anomaly_correct": true,
+      "anomaly_scorable": true,
+      "technique_correct": true,
+      "blast_radius_correct": true,
+      "decision_correct": true,
+      "remediation_safe": true
+    },
+    "crashed": false,
+    "error": null
+  },
+  {
+    "scenario_id": "GB-21",
+    "family": "cross_service",
+    "trap": false,
+    "note": "",
+    "input": {
+      "event_id": "gb-21",
+      "timestamp": "2026-06-13T04:25:00Z",
+      "vulnerability_type": "IAM Audit",
+      "severity": "HIGH",
+      "bucket_name": "iam-crossservice-ml-training",
+      "account_id": "700100200300",
+      "region": "us-east-1",
+      "status": "IAM_OVERPERMISSIVE",
+      "principal": "halcyon-ml-training-role",
+      "nlp_summary": "The ML training role, which already reads raw customer PII for model training, was also granted iam:PassRole('*') \u2014 it could hand its data-access role to an unaudited compute resource.",
+      "policy_fix_context": {
+        "current_policy": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": "s3:GetObject",
+              "Resource": "arn:aws:s3:::halcyon-customer-pii-store/*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": "iam:PassRole",
+              "Resource": "*"
+            }
+          ]
+        },
+        "offending_action": "iam:PassRole",
+        "offending_resource": "*",
+        "must_still_allow": [
+          [
+            "s3:GetObject",
+            "arn:aws:s3:::halcyon-customer-pii-store/training-set.csv"
+          ]
+        ]
+      }
+    },
+    "ground_truth": {
+      "anomaly": true,
+      "technique": "T1098",
+      "blast_radius": "HIGH",
+      "decision": "attempt_auto_fix",
+      "required_access": [
+        [
+          "s3:GetObject",
+          "arn:aws:s3:::halcyon-customer-pii-store/training-set.csv"
+        ]
+      ],
+      "forbidden_access": [
+        [
+          "iam:PassRole",
+          "*"
+        ]
+      ],
+      "rationale": "Off-hours, HIGH. Entry ml-training-role reaches customer-pii-store (critical) + dev-scratch-bucket (not critical) -> 1 critical resource -> HIGH by direct traversal."
+    },
+    "model_output": {
+      "anomaly": true,
+      "anomaly_score": 0.5293,
+      "technique": "T1098",
+      "blast_radius": "HIGH",
+      "decision": "attempt_auto_fix",
+      "rationale": "The anomaly indicates a potentially serious account manipulation with high severity and a critical resource already impacted. An auto-fix is available and can quickly mitigate the risk without waiting for human intervention, making it the appropriate immediate response."
+    },
+    "verification": {
+      "policy_valid": true,
+      "vulnerability_removed": true,
+      "required_access_preserved": true,
+      "safe_fix": true,
+      "agent_reported_test_passed": true
+    },
+    "scoring": {
+      "anomaly_correct": true,
+      "anomaly_scorable": true,
+      "technique_correct": true,
+      "blast_radius_correct": true,
+      "decision_correct": true,
+      "remediation_safe": true
+    },
+    "crashed": false,
+    "error": null
+  },
+  {
+    "scenario_id": "GB-22",
+    "family": "cross_service",
+    "trap": true,
+    "note": "Principal is an external identity not present in the infra graph at all \u2014 tests honest LOW-default degradation, not a crash or a guess, while the auto-fix decision should still work fine (Layer 4 doesn't need blast radius to draft).",
+    "input": {
+      "event_id": "gb-22",
+      "timestamp": "2026-06-14T01:50:00Z",
+      "vulnerability_type": "IAM Audit",
+      "severity": "CRITICAL",
+      "bucket_name": "iam-external-contractor-wildcard",
+      "account_id": "700100200300",
+      "region": "us-east-1",
+      "status": "IAM_OVERPERMISSIVE",
+      "principal": "external-halcyon-contractor-2024",
+      "nlp_summary": "An external contractor identity, not provisioned through the normal onboarding process, was granted a wildcard IAM policy.",
+      "policy_fix_context": {
+        "current_policy": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": "*",
+              "Resource": "*"
+            }
+          ]
+        },
+        "offending_action": "iam:CreateAccessKey",
+        "offending_resource": "*",
+        "must_still_allow": []
+      }
+    },
+    "ground_truth": {
+      "anomaly": true,
+      "technique": "T1098",
+      "blast_radius": "LOW (honest default \u2014 principal is not a known graph node)",
+      "decision": "attempt_auto_fix",
+      "required_access": [],
+      "forbidden_access": [
+        [
+          "iam:CreateAccessKey",
+          "*"
+        ]
+      ],
+      "rationale": "Off-hours, CRITICAL, full wildcard grant to an identity outside the known graph entirely. Blast radius correctly defaulting to LOW here is the EXPECTED, correct behavior (the system has no way to know what an unknown external identity can reach) \u2014 not a failure to detect risk. The decision should still be attempt_auto_fix regardless, since Layer 4's drafting doesn't depend on blast radius being resolved, and a full wildcard grant to an unvetted external identity is dangerous on its face."
+    },
+    "model_output": {
+      "anomaly": true,
+      "anomaly_score": 0.5448,
+      "technique": "T1098",
+      "blast_radius": "LOW",
+      "decision": "attempt_auto_fix",
+      "rationale": "The anomaly has a moderate confidence and low blast radius, with a low priority tier (P3). Since the system indicates that an automated fix is possible (can_auto_fix: true) and the risk is low, attempting an automatic remediation is appropriate before escalating."
+    },
+    "verification": {
+      "policy_valid": true,
+      "vulnerability_removed": true,
+      "required_access_preserved": true,
+      "safe_fix": true,
+      "agent_reported_test_passed": true
+    },
+    "scoring": {
+      "anomaly_correct": true,
+      "anomaly_scorable": true,
+      "technique_correct": true,
+      "blast_radius_correct": true,
+      "decision_correct": true,
+      "remediation_safe": true
+    },
+    "crashed": false,
+    "error": null
+  },
+  {
+    "scenario_id": "GB-23",
+    "family": "ambiguous",
+    "trap": true,
+    "note": "Context implies a possibly-legitimate temporary broad grant (declared incident window) \u2014 tests whether context nuance shifts the decision away from a blind auto-fix.",
+    "input": {
+      "event_id": "gb-23",
+      "timestamp": "2026-06-13T05:30:00Z",
+      "vulnerability_type": "IAM Audit",
+      "severity": "CRITICAL",
+      "bucket_name": "iam-breakglass-billing-incident",
+      "account_id": "700100200300",
+      "region": "us-east-1",
+      "status": "IAM_OVERPERMISSIVE",
+      "principal": "halcyon-billing-service-role",
+      "nlp_summary": "The billing service role was granted a broad administrative policy; account activity log notes this coincides with a declared incident-response window for a payment-processing outage.",
+      "policy_fix_context": {
+        "current_policy": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": "dynamodb:*",
+              "Resource": "*"
+            }
+          ]
+        },
+        "offending_action": "dynamodb:DeleteTable",
+        "offending_resource": "*",
+        "must_still_allow": [
+          [
+            "dynamodb:GetItem",
+            "arn:aws:dynamodb:us-east-1:700100200300:table/halcyon-billing-records"
+          ]
+        ]
+      }
+    },
+    "ground_truth": {
+      "anomaly": true,
+      "technique": "T1098",
+      "blast_radius": "HIGH",
+      "decision": [
+        "escalate_to_human",
+        "attempt_auto_fix"
+      ],
+      "rationale": "Genuinely hard case, disclosed as such in advance. My independent judgment leans escalate_to_human \u2014 narrative context suggesting a possibly-legitimate, time-boxed incident-response grant is exactly the kind of nuance that should prompt a human check rather than an automatic narrowing, even though the underlying permission shape looks identical to GB-06's clearly-wrong case. Scored leniently (both answers accepted) precisely because this is acknowledged as genuinely ambiguous, not because the system get a pass \u2014 the interesting result is which way it actually goes, not whether it matches a forced 'right' answer."
+    },
+    "model_output": {
+      "anomaly": true,
+      "anomaly_score": 0.5346,
+      "technique": "T1098",
+      "blast_radius": "HIGH",
+      "decision": "escalate_to_human",
+      "rationale": "Blast radius severity HIGH / priority P2 warrants human review before any automated action is taken."
+    },
+    "verification": {},
+    "scoring": {
+      "anomaly_correct": true,
+      "anomaly_scorable": true,
+      "technique_correct": true,
+      "blast_radius_correct": true,
+      "decision_correct": true
+    },
+    "crashed": false,
+    "error": null
+  },
+  {
+    "scenario_id": "GB-24",
+    "family": "ambiguous",
+    "trap": true,
+    "note": "Malformed/incomplete event (no account_id/region) \u2014 robustness/graceful-degradation check, not a correctness check per se.",
+    "input": {
+      "event_id": "gb-24",
+      "timestamp": "2026-06-11T12:00:00Z",
+      "vulnerability_type": "DynamoDB Unencrypted",
+      "severity": "MEDIUM",
+      "bucket_name": "halcyon-tmp-cache-table",
+      "nlp_summary": "Server-side encryption is disabled on a table; account and region metadata are missing from this event."
+    },
+    "ground_truth": {
+      "anomaly": null,
+      "technique": "N/A",
+      "blast_radius": "N/A",
+      "decision": "no_crash",
+      "rationale": "Not a correctness test \u2014 a robustness check. Missing account_id/region should not crash the pipeline. Any decision is acceptable EXCEPT an unhandled exception; monitor_only/escalate_to_human are both more defensible than a confident auto-fix on incomplete data, but the primary pass/fail bar here is simply 'did it run and return a decision at all'."
+    },
+    "model_output": {
+      "anomaly": false,
+      "anomaly_score": 0.3749,
+      "technique": null,
+      "blast_radius": null,
+      "decision": "monitor_only",
+      "rationale": "Below the anomaly threshold."
+    },
+    "verification": {},
+    "scoring": {
+      "anomaly_correct": null,
+      "anomaly_scorable": false,
+      "technique_correct": true,
+      "blast_radius_correct": true,
+      "decision_correct": true
+    },
+    "crashed": false,
+    "error": null
+  }
+]

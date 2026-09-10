@@ -1,0 +1,16 @@
+id: prowler-azure-storage_account_https_only
+name: Storage HTTPS Only
+provider: azure
+service: storage
+severity: MEDIUM
+description: 'Prowler: Storage HTTPS Only'
+enabled: true
+check: prowler_storage_account_https_only
+remediation: ''
+auto_remediate: false
+compliance:
+- framework: Prowler
+  control: storage_account_https_only
+feed_source: prowler
+prowler_check: storage_account_https_only
+synced_at: '2026-03-21T17:55:26.697105+00:00'

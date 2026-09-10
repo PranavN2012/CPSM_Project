@@ -1,0 +1,19 @@
+id: auto-aws-sg-open
+name: EC2 Sg Open
+provider: aws
+service: ec2
+severity: HIGH
+description: Auto-generated from sg open incident
+enabled: false
+check: check_sg_open_ports
+remediation: ''
+auto_remediate: false
+auto_generated: true
+needs_review: true
+generated_from:
+  event_type: sg_open
+  resource: ''
+  timestamp: '2026-03-22T16:43:02.941451+00:00'
+compliance:
+- framework: Custom
+  control: Auto-detected

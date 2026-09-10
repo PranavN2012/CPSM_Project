@@ -1,0 +1,16 @@
+id: prowler-gcp-gcs_bucket_public_access
+name: GCS Public Access
+provider: gcp
+service: storage
+severity: MEDIUM
+description: 'Prowler: GCS Public Access'
+enabled: true
+check: prowler_gcs_bucket_public_access
+remediation: ''
+auto_remediate: false
+compliance:
+- framework: Prowler
+  control: gcs_bucket_public_access
+feed_source: prowler
+prowler_check: gcs_bucket_public_access
+synced_at: '2026-03-21T17:55:28.939673+00:00'

@@ -1,0 +1,20 @@
+id: aws-iam-overpermissive
+name: IAM Overpermissive Policy
+provider: aws
+service: iam
+severity: CRITICAL
+enabled: true
+description: IAM users and roles must not have wildcard (Action:*/Resource:*) or admin-level managed policies attached.
+compliance:
+- framework: CIS AWS
+  control: '1.16'
+  title: Ensure IAM policies that allow full administrative privileges are not attached
+- framework: SOC 2
+  control: CC6.3
+  title: Role-based access and segregation of duties
+- framework: PCI-DSS
+  control: '7.2'
+  title: Establish access control systems for system components
+check: check_iam_overpermissive
+remediation: flag_only
+auto_remediate: false

@@ -1,0 +1,8 @@
+{
+  "layer": 3,
+  "name": "Blast Radius",
+  "n_entry_points": 21,
+  "n_matching_oracle": 21,
+  "mismatches": [],
+  "known_chain_checks_passed": true
+}

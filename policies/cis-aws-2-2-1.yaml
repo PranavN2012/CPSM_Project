@@ -1,0 +1,15 @@
+id: cis-aws-2.2.1
+name: Ensure EBS volume encryption is enabled by default
+provider: aws
+service: ec2
+severity: HIGH
+description: EBS volumes should have encryption enabled by default in the region settings.
+enabled: true
+check: check_ebs_encryption_default
+remediation: ''
+auto_remediate: true
+compliance:
+- framework: CIS AWS
+  control: 2.2.1
+feed_source: cis
+synced_at: '2026-03-21T17:54:15.053162+00:00'

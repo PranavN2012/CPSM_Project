@@ -1,0 +1,16 @@
+id: prowler-aws-s3_bucket_versioning
+name: S3 Bucket Versioning
+provider: aws
+service: s3
+severity: MEDIUM
+description: 'Prowler: S3 Bucket Versioning'
+enabled: true
+check: prowler_s3_bucket_versioning
+remediation: ''
+auto_remediate: false
+compliance:
+- framework: Prowler
+  control: s3_bucket_versioning
+feed_source: prowler
+prowler_check: s3_bucket_versioning
+synced_at: '2026-03-21T17:55:18.800019+00:00'

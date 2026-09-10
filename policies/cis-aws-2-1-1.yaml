@@ -1,0 +1,16 @@
+id: cis-aws-2.1.1
+name: Ensure S3 bucket access logging is enabled
+provider: aws
+service: s3
+severity: MEDIUM
+description: S3 buckets should have server access logging enabled to track requests
+  for security analysis.
+enabled: true
+check: check_s3_access_logging
+remediation: ''
+auto_remediate: true
+compliance:
+- framework: CIS AWS
+  control: 2.1.1
+feed_source: cis
+synced_at: '2026-03-21T17:54:14.790489+00:00'

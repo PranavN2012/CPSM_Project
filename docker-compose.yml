@@ -11,10 +11,9 @@ services:
       - "4566:4566"           # Unified gateway for all AWS services
       - "4510-4559:4510-4559" # External service port range
     environment:
-      - SERVICES=s3,lambda,dynamodb,events,apigateway,iam,logs,sts
+      - SERVICES=s3,lambda,dynamodb,events,apigateway,iam,logs,sts,ec2
       - DEBUG=0
-      - LAMBDA_EXECUTOR=docker
-      - DOCKER_HOST=unix:///var/run/docker.sock
+      - LAMBDA_EXECUTOR=local
       - DEFAULT_REGION=us-east-1
     volumes:
       - localstack-data:/var/lib/localstack

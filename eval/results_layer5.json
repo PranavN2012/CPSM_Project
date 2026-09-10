@@ -1,0 +1,44 @@
+{
+  "layer": 5,
+  "name": "Priority Scoring",
+  "monotonicity_all_passed": true,
+  "ranking_all_passed": true,
+  "scenarios": [
+    {
+      "name": "critical_anomalous_recent",
+      "score": 86.75,
+      "tier": "P1",
+      "expected_tier": "P1"
+    },
+    {
+      "name": "high_confident_recent",
+      "score": 71.0,
+      "tier": "P2",
+      "expected_tier": "P2"
+    },
+    {
+      "name": "medium_moderate_novel",
+      "score": 50.0,
+      "tier": "P3",
+      "expected_tier": "P3"
+    },
+    {
+      "name": "low_normal_old",
+      "score": 23.25,
+      "tier": "P4",
+      "expected_tier": "P4"
+    },
+    {
+      "name": "unclassified_but_critical_blast",
+      "score": 60.0,
+      "tier": "P2",
+      "expected_tier": "P2"
+    },
+    {
+      "name": "known_technique_low_impact",
+      "score": 44.25,
+      "tier": "P3",
+      "expected_tier": "P3"
+    }
+  ]
+}

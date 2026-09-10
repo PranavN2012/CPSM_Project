@@ -1,0 +1,20 @@
+id: aws-s3-encryption
+name: S3 Default Encryption
+provider: aws
+service: s3
+severity: HIGH
+enabled: true
+description: S3 buckets must have default server-side encryption (SSE) enabled.
+compliance:
+- framework: CIS AWS
+  control: 2.1.2
+  title: Ensure S3 Bucket Policy is set to deny HTTP requests
+- framework: SOC 2
+  control: CC6.7
+  title: Restrict transmission, movement, and removal of information
+- framework: PCI-DSS
+  control: '3.4'
+  title: Render PAN unreadable anywhere it is stored
+check: check_s3_encryption
+remediation: remediate_s3_encryption
+auto_remediate: true

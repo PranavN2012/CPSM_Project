@@ -1,0 +1,22 @@
+id: prowler-aws-iam_root_mfa_enabled
+name: Root account has MFA enabled
+provider: aws
+service: iam
+severity: CRITICAL
+description: '**AWS root user** with active credentials is assessed for **MFA activation**.
+  The evaluation considers whether the root identity has a password or access keys
+  and whether **MFA is enabled**.
+
+
+  *If centralized root access is enabled in Organizations, the presence of individual
+  root credentials is also noted.*'
+enabled: true
+check: prowler_iam_root_mfa_enabled
+remediation: ''
+auto_remediate: false
+compliance:
+- framework: Prowler
+  control: iam_root_mfa_enabled
+feed_source: prowler
+prowler_check: iam_root_mfa_enabled
+synced_at: '2026-03-21T17:55:21.446929+00:00'

@@ -1,0 +1,20 @@
+id: aws-s3-public-access
+name: S3 Public Access Block
+provider: aws
+service: s3
+severity: CRITICAL
+enabled: true
+description: S3 buckets must have Block Public Access enabled to prevent unauthorized public exposure.
+compliance:
+- framework: CIS AWS
+  control: 2.1.5
+  title: Ensure that S3 Buckets are configured with Block Public Access
+- framework: SOC 2
+  control: CC6.1
+  title: Logical and Physical Access Controls
+- framework: PCI-DSS
+  control: '7.1'
+  title: Limit access to system components
+check: check_s3_public_access
+remediation: remediate_s3_public_access
+auto_remediate: true

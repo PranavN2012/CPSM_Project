@@ -1,0 +1,18 @@
+id: prowler-aws-iam_user_mfa_enabled_console_access
+name: IAM user has MFA enabled for console access or no console password is set
+provider: aws
+service: iam
+severity: HIGH
+description: '**IAM users** that have a console password are expected to have **multi-factor
+  authentication** enabled. The evaluation identifies users who can sign in to the
+  AWS Management Console but do not have an active MFA device associated.'
+enabled: true
+check: prowler_iam_user_mfa_enabled_console_access
+remediation: aws iam delete-login-profile --user-name <IAM_USER_NAME>
+auto_remediate: false
+compliance:
+- framework: Prowler
+  control: iam_user_mfa_enabled_console_access
+feed_source: prowler
+prowler_check: iam_user_mfa_enabled_console_access
+synced_at: '2026-03-21T17:55:22.179709+00:00'

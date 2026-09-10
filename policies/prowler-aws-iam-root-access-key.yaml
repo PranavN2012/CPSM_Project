@@ -1,0 +1,16 @@
+id: prowler-aws-iam_root_access_key
+name: Root Access Key
+provider: aws
+service: iam
+severity: MEDIUM
+description: 'Prowler: Root Access Key'
+enabled: true
+check: prowler_iam_root_access_key
+remediation: ''
+auto_remediate: false
+compliance:
+- framework: Prowler
+  control: iam_root_access_key
+feed_source: prowler
+prowler_check: iam_root_access_key
+synced_at: '2026-03-21T17:55:20.712181+00:00'

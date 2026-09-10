@@ -1,0 +1,16 @@
+id: prowler-aws-dynamodb_table_encryption_at_rest
+name: DynamoDB Encryption
+provider: aws
+service: dynamodb
+severity: MEDIUM
+description: 'Prowler: DynamoDB Encryption'
+enabled: true
+check: prowler_dynamodb_table_encryption_at_rest
+remediation: ''
+auto_remediate: false
+compliance:
+- framework: Prowler
+  control: dynamodb_table_encryption_at_rest
+feed_source: prowler
+prowler_check: dynamodb_table_encryption_at_rest
+synced_at: '2026-03-21T17:55:25.045740+00:00'

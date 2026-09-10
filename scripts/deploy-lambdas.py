@@ -9,9 +9,17 @@ Usage: python scripts/deploy-lambdas.py
 
 import json
 import os
+import sys
 import io
 import zipfile
 import boto3
+
+# Windows consoles default to cp1252, which can't encode the emoji in the
+# banner/log lines below — reconfigure to UTF-8 so the script doesn't crash
+# on launch (same fix as scripts/simulate-attacks.py and local-api-server.py).
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 LOCALSTACK_ENDPOINT = "http://localhost:4566"
 REGION = "us-east-1"
@@ -97,8 +105,8 @@ def deploy_lambda(name, handler, files_map, env_vars, role_arn):
     zip_bytes = create_zip(files_map)
 
     try:
+        # First try to get the function. If it exists, update it.
         lambda_client.get_function(FunctionName=name)
-        # Update existing
         lambda_client.update_function_code(
             FunctionName=name,
             ZipFile=zip_bytes,
@@ -111,7 +119,7 @@ def deploy_lambda(name, handler, files_map, env_vars, role_arn):
         )
         print(f"  ✅ Updated Lambda: {name}")
     except lambda_client.exceptions.ResourceNotFoundException:
-        # Create new
+        # If it doesn't exist, create it.
         lambda_client.create_function(
             FunctionName=name,
             Runtime="python3.11",
@@ -124,21 +132,25 @@ def deploy_lambda(name, handler, files_map, env_vars, role_arn):
         )
         print(f"  ✅ Created Lambda: {name}")
     except Exception as exc:
-        # Fallback: try create
-        try:
-            lambda_client.create_function(
-                FunctionName=name,
-                Runtime="python3.11",
-                Role=role_arn,
-                Handler=handler,
-                Code={"ZipFile": zip_bytes},
-                Environment={"Variables": env_vars},
-                Timeout=60,
-                MemorySize=256,
-            )
-            print(f"  ✅ Created Lambda: {name}")
-        except Exception as exc2:
-            print(f"  ❌ Failed to deploy {name}: {exc2}")
+        # Sometimes LocalStack throws ResourceConflictException if we try to create
+        # while it's in a weird state, let's catch it specifically or fallback to update
+        if "ResourceConflictException" in str(exc) or "Function already exist" in str(exc):
+             try:
+                lambda_client.update_function_code(
+                    FunctionName=name,
+                    ZipFile=zip_bytes,
+                )
+                lambda_client.update_function_configuration(
+                    FunctionName=name,
+                    Handler=handler,
+                    Runtime="python3.11",
+                    Environment={"Variables": env_vars},
+                )
+                print(f"  ✅ Updated Lambda (Recovered from conflict): {name}")
+             except Exception as update_exc:
+                 print(f"  ❌ Failed to update {name} after conflict: {update_exc}")
+        else:
+             print(f"  ❌ Failed to deploy {name}: {exc}")
 
 
 def main():
@@ -163,14 +175,16 @@ def main():
     print("[2/4] Ensuring DynamoDB table ...")
     ensure_dynamodb_table()
 
-    # Shared module path
+    # Shared module paths
     shared_path = os.path.join(PROJECT_DIR, "lambda", "shared", "github_notifier.py")
+    nlg_path = os.path.join(PROJECT_DIR, "lambda", "shared", "nlg_engine.py")
 
     # --- Remediation Lambda ---
     print("[3/4] Deploying Remediation Lambda ...")
     remediation_files = {
         "lambda_function.py": os.path.join(PROJECT_DIR, "lambda", "remediation", "lambda_function.py"),
         "shared/github_notifier.py": shared_path,
+        "nlg_engine.py": nlg_path,
     }
     deploy_lambda(
         name="cspm-s3-remediation-remediation",
@@ -198,6 +212,7 @@ def main():
     iam_files = {
         "lambda_function.py": os.path.join(PROJECT_DIR, "lambda", "iam-audit", "lambda_function.py"),
         "shared/github_notifier.py": shared_path,
+        "nlg_engine.py": nlg_path,
     }
     deploy_lambda(
         name="cspm-s3-remediation-iam-audit",

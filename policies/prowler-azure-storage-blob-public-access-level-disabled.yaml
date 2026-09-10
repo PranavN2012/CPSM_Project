@@ -1,0 +1,16 @@
+id: prowler-azure-storage_blob_public_access_level_disabled
+name: Blob Public Access
+provider: azure
+service: storage
+severity: MEDIUM
+description: 'Prowler: Blob Public Access'
+enabled: true
+check: prowler_storage_blob_public_access_level_disabled
+remediation: ''
+auto_remediate: false
+compliance:
+- framework: Prowler
+  control: storage_blob_public_access_level_disabled
+feed_source: prowler
+prowler_check: storage_blob_public_access_level_disabled
+synced_at: '2026-03-21T17:55:27.401582+00:00'

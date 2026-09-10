@@ -1,0 +1,15 @@
+id: cis-aws-1.10
+name: Ensure multi-factor authentication is enabled for IAM users with console access
+provider: aws
+service: iam
+severity: HIGH
+description: All IAM users with console passwords should have MFA enabled.
+enabled: true
+check: check_iam_user_mfa
+remediation: ''
+auto_remediate: false
+compliance:
+- framework: CIS AWS
+  control: '1.10'
+feed_source: cis
+synced_at: '2026-03-21T17:54:14.603068+00:00'

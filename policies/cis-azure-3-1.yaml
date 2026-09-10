@@ -1,0 +1,15 @@
+id: cis-azure-3.1
+name: Ensure that Storage Account access is restricted to HTTPS
+provider: azure
+service: storage
+severity: HIGH
+description: Azure Storage Accounts should enforce HTTPS-only access to data.
+enabled: true
+check: check_storage_https_only
+remediation: ''
+auto_remediate: true
+compliance:
+- framework: CIS Azure
+  control: '3.1'
+feed_source: cis
+synced_at: '2026-03-21T17:54:16.040672+00:00'

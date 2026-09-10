@@ -1,0 +1,19 @@
+id: auto-aws-rds-public
+name: RDS Rds Public
+provider: aws
+service: rds
+severity: CRITICAL
+description: Auto-generated from rds public incident
+enabled: false
+check: check_rds_public
+remediation: ''
+auto_remediate: false
+auto_generated: true
+needs_review: true
+generated_from:
+  event_type: rds_public
+  resource: db-production-01
+  timestamp: '2026-03-21T18:02:50.680445+00:00'
+compliance:
+- framework: Custom
+  control: Auto-detected

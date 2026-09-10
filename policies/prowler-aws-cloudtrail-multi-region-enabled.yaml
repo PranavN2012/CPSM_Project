@@ -1,0 +1,18 @@
+id: prowler-aws-cloudtrail_multi_region_enabled
+name: Region has at least one CloudTrail trail logging
+provider: aws
+service: cloudtrail
+severity: HIGH
+description: '**AWS CloudTrail** has at least one trail with `logging` enabled in
+  every region. A **multi-region trail** or a regional trail counts for coverage in
+  that region.'
+enabled: true
+check: prowler_cloudtrail_multi_region_enabled
+remediation: ''
+auto_remediate: false
+compliance:
+- framework: Prowler
+  control: cloudtrail_multi_region_enabled
+feed_source: prowler
+prowler_check: cloudtrail_multi_region_enabled
+synced_at: '2026-03-21T17:55:24.268604+00:00'

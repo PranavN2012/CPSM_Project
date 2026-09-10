@@ -1,0 +1,16 @@
+id: cis-gcp-3.1
+name: Ensure default network does not exist in a project
+provider: gcp
+service: network
+severity: MEDIUM
+description: The default VPC network has pre-configured firewall rules that are overly
+  permissive.
+enabled: true
+check: check_default_network
+remediation: ''
+auto_remediate: false
+compliance:
+- framework: CIS GCP
+  control: '3.1'
+feed_source: cis
+synced_at: '2026-03-21T17:54:16.646442+00:00'

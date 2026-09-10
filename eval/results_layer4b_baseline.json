@@ -1,0 +1,81 @@
+{
+  "layer": "4b",
+  "name": "Baseline Comparison (single-shot vs. propose-test-revise)",
+  "llm_client": "GroqLLMClient",
+  "n_scenarios": 12,
+  "pct_single_shot_pass": 100.0,
+  "rows": [
+    {
+      "name": "s3_public_access_admin_wildcard",
+      "single_shot_passed": true,
+      "narrowed": true,
+      "preserved_required": true
+    },
+    {
+      "name": "iam_create_policy_wildcard",
+      "single_shot_passed": true,
+      "narrowed": true,
+      "preserved_required": true
+    },
+    {
+      "name": "dynamodb_delete_table_wildcard",
+      "single_shot_passed": true,
+      "narrowed": true,
+      "preserved_required": true
+    },
+    {
+      "name": "ec2_open_ingress_wildcard",
+      "single_shot_passed": true,
+      "narrowed": true,
+      "preserved_required": true
+    },
+    {
+      "name": "lambda_update_code_wildcard",
+      "single_shot_passed": true,
+      "narrowed": true,
+      "preserved_required": true
+    },
+    {
+      "name": "cross_service_pass_role",
+      "single_shot_passed": true,
+      "narrowed": true,
+      "preserved_required": true
+    },
+    {
+      "name": "broad_resource_wildcard",
+      "single_shot_passed": true,
+      "narrowed": true,
+      "preserved_required": true
+    },
+    {
+      "name": "multi_statement_multiple_required",
+      "single_shot_passed": true,
+      "narrowed": true,
+      "preserved_required": true
+    },
+    {
+      "name": "already_partially_restricted",
+      "single_shot_passed": true,
+      "narrowed": true,
+      "preserved_required": true
+    },
+    {
+      "name": "empty_starting_policy",
+      "single_shot_passed": true,
+      "narrowed": true,
+      "preserved_required": true
+    },
+    {
+      "name": "trap_overlapping_resource_prefix",
+      "single_shot_passed": true,
+      "narrowed": true,
+      "preserved_required": true
+    },
+    {
+      "name": "trap_similar_action_names",
+      "single_shot_passed": true,
+      "narrowed": true,
+      "preserved_required": true
+    }
+  ]
+}

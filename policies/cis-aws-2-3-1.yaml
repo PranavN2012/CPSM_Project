@@ -1,0 +1,15 @@
+id: cis-aws-2.3.1
+name: Ensure RDS instance encryption is enabled
+provider: aws
+service: rds
+severity: HIGH
+description: RDS database instances should have storage encryption enabled at rest.
+enabled: true
+check: check_rds_encryption
+remediation: ''
+auto_remediate: false
+compliance:
+- framework: CIS AWS
+  control: 2.3.1
+feed_source: cis
+synced_at: '2026-03-21T17:54:15.174356+00:00'

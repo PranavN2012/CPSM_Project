@@ -1,0 +1,21 @@
+{
+  "layer": 1,
+  "name": "Anomaly Detection",
+  "n_normal": 14,
+  "n_anomalous": 16,
+  "threshold": 0.46,
+  "precision": 0.8888888888888888,
+  "recall": 1.0,
+  "f1": 0.9411764705882353,
+  "roc_auc": 0.9732142857142858,
+  "confusion_matrix": [
+    [
+      12,
+      2
+    ],
+    [
+      0,
+      16
+    ]
+  ]
+}

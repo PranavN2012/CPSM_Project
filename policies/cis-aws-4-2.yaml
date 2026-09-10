@@ -1,0 +1,16 @@
+id: cis-aws-4.2
+name: Ensure no security group allows ingress from 0.0.0.0/0 to port 3389
+provider: aws
+service: ec2
+severity: HIGH
+description: Security groups should not allow unrestricted inbound RDP access from
+  any IP address.
+enabled: true
+check: check_sg_rdp_open
+remediation: ''
+auto_remediate: true
+compliance:
+- framework: CIS AWS
+  control: '4.2'
+feed_source: cis
+synced_at: '2026-03-21T17:54:15.834915+00:00'

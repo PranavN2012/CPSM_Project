@@ -1,0 +1,20 @@
+id: aws-dynamodb-encryption
+name: DynamoDB Encryption at Rest
+provider: aws
+service: dynamodb
+severity: MEDIUM
+enabled: true
+description: DynamoDB tables must have server-side encryption (SSE) enabled at rest.
+compliance:
+- framework: CIS AWS
+  control: '3.12'
+  title: Ensure DynamoDB tables are encrypted at rest
+- framework: SOC 2
+  control: CC6.7
+  title: Restrict transmission, movement, and removal of information
+- framework: PCI-DSS
+  control: '3.4'
+  title: Render PAN unreadable anywhere it is stored
+check: check_dynamodb_encryption
+remediation: remediate_dynamodb_encryption
+auto_remediate: true

@@ -1,0 +1,19 @@
+id: auto-aws-lambda-public
+name: LAMBDA Lambda Public
+provider: aws
+service: lambda
+severity: HIGH
+description: Auto-generated from lambda public incident
+enabled: false
+check: check_lambda_public_url
+remediation: ''
+auto_remediate: false
+auto_generated: true
+needs_review: true
+generated_from:
+  event_type: lambda_public
+  resource: fn-api-a986
+  timestamp: '2026-03-22T16:43:07.666297+00:00'
+compliance:
+- framework: Custom
+  control: Auto-detected

@@ -27,6 +27,29 @@ except ImportError:
     from compliance import get_compliance_summary, get_compliance_for_event, COMPLIANCE_MAP
 
 
+# FPDF's core fonts (Helvetica, Times, etc.) only support Latin-1. Event data
+# (bucket names, statuses, NLG-generated summaries) is free text that can
+# contain smart punctuation or non-Latin characters, which used to crash PDF
+# generation entirely (FPDFUnicodeEncodingException). Transliterate common
+# punctuation to its ASCII equivalent, then hard-fallback anything else still
+# outside Latin-1 to "?" so the report always renders instead of raising.
+_UNICODE_TRANSLITERATIONS = {
+    "—": "-", "–": "-",       # em dash, en dash
+    "‘": "'", "’": "'",       # curly single quotes
+    "“": '"', "”": '"',       # curly double quotes
+    "…": "...",                     # ellipsis
+    "•": "-",                        # bullet
+}
+
+
+def _pdf_safe(text) -> str:
+    """Make arbitrary text safe to pass to FPDF's Latin-1-only core fonts."""
+    text = str(text)
+    for src, dst in _UNICODE_TRANSLITERATIONS.items():
+        text = text.replace(src, dst)
+    return text.encode("latin-1", errors="replace").decode("latin-1")
+
+
 class CSPMReport(FPDF):
     """Custom PDF with CSPM branding."""
 
@@ -253,12 +276,12 @@ def generate_report(events: list, stats: dict) -> bytes:
         else:
             pdf.set_fill_color(255, 255, 255)
 
-        ts = event.get("timestamp", "")[:16]
-        resource = event.get("bucket_name", "")[:20]
-        vtype = event.get("vulnerability_type", "")[:15]
-        severity = event.get("severity", "")
-        status = event.get("status", "")[:15]
-        region = event.get("region", "")
+        ts = _pdf_safe(event.get("timestamp", ""))[:16]
+        resource = _pdf_safe(event.get("bucket_name", ""))[:20]
+        vtype = _pdf_safe(event.get("vulnerability_type", ""))[:15]
+        severity = _pdf_safe(event.get("severity", ""))
+        status = _pdf_safe(event.get("status", ""))[:15]
+        region = _pdf_safe(event.get("region", ""))
 
         row_data = [ts, resource, vtype, severity, status, region]
         for i, val in enumerate(row_data):

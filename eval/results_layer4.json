@@ -1,0 +1,132 @@
+{
+  "layer": 4,
+  "name": "Policy Drafting",
+  "llm_client": "GroqLLMClient",
+  "n_scenarios": 12,
+  "pct_pass_attempt_1": 91.7,
+  "pct_pass_within_3": 100.0,
+  "pct_never_passed": 0.0,
+  "pct_agent_agrees_with_independent_check": 100.0,
+  "rows": [
+    {
+      "name": "s3_public_access_admin_wildcard",
+      "agent_reported_pass": true,
+      "attempt_number": 1,
+      "independently_confirmed_narrowed": true,
+      "independently_confirmed_preserved_required": true,
+      "independently_confirmed_pass": true,
+      "agrees_with_independent_check": true,
+      "errors": []
+    },
+    {
+      "name": "iam_create_policy_wildcard",
+      "agent_reported_pass": true,
+      "attempt_number": 1,
+      "independently_confirmed_narrowed": true,
+      "independently_confirmed_preserved_required": true,
+      "independently_confirmed_pass": true,
+      "agrees_with_independent_check": true,
+      "errors": []
+    },
+    {
+      "name": "dynamodb_delete_table_wildcard",
+      "agent_reported_pass": true,
+      "attempt_number": 1,
+      "independently_confirmed_narrowed": true,
+      "independently_confirmed_preserved_required": true,
+      "independently_confirmed_pass": true,
+      "agrees_with_independent_check": true,
+      "errors": []
+    },
+    {
+      "name": "ec2_open_ingress_wildcard",
+      "agent_reported_pass": true,
+      "attempt_number": 1,
+      "independently_confirmed_narrowed": true,
+      "independently_confirmed_preserved_required": true,
+      "independently_confirmed_pass": true,
+      "agrees_with_independent_check": true,
+      "errors": []
+    },
+    {
+      "name": "lambda_update_code_wildcard",
+      "agent_reported_pass": true,
+      "attempt_number": 1,
+      "independently_confirmed_narrowed": true,
+      "independently_confirmed_preserved_required": true,
+      "independently_confirmed_pass": true,
+      "agrees_with_independent_check": true,
+      "errors": []
+    },
+    {
+      "name": "cross_service_pass_role",
+      "agent_reported_pass": true,
+      "attempt_number": 1,
+      "independently_confirmed_narrowed": true,
+      "independently_confirmed_preserved_required": true,
+      "independently_confirmed_pass": true,
+      "agrees_with_independent_check": true,
+      "errors": []
+    },
+    {
+      "name": "broad_resource_wildcard",
+      "agent_reported_pass": true,
+      "attempt_number": 1,
+      "independently_confirmed_narrowed": true,
+      "independently_confirmed_preserved_required": true,
+      "independently_confirmed_pass": true,
+      "agrees_with_independent_check": true,
+      "errors": []
+    },
+    {
+      "name": "multi_statement_multiple_required",
+      "agent_reported_pass": true,
+      "attempt_number": 1,
+      "independently_confirmed_narrowed": true,
+      "independently_confirmed_preserved_required": true,
+      "independently_confirmed_pass": true,
+      "agrees_with_independent_check": true,
+      "errors": []
+    },
+    {
+      "name": "already_partially_restricted",
+      "agent_reported_pass": true,
+      "attempt_number": 1,
+      "independently_confirmed_narrowed": true,
+      "independently_confirmed_preserved_required": true,
+      "independently_confirmed_pass": true,
+      "agrees_with_independent_check": true,
+      "errors": []
+    },
+    {
+      "name": "empty_starting_policy",
+      "agent_reported_pass": true,
+      "attempt_number": 3,
+      "independently_confirmed_narrowed": true,
+      "independently_confirmed_preserved_required": true,
+      "independently_confirmed_pass": true,
+      "agrees_with_independent_check": true,
+      "errors": []
+    },
+    {
+      "name": "trap_overlapping_resource_prefix",
+      "agent_reported_pass": true,
+      "attempt_number": 1,
+      "independently_confirmed_narrowed": true,
+      "independently_confirmed_preserved_required": true,
+      "independently_confirmed_pass": true,
+      "agrees_with_independent_check": true,
+      "errors": []
+    },
+    {
+      "name": "trap_similar_action_names",
+      "agent_reported_pass": true,
+      "attempt_number": 1,
+      "independently_confirmed_narrowed": true,
+      "independently_confirmed_preserved_required": true,
+      "independently_confirmed_pass": true,
+      "agrees_with_independent_check": true,
+      "errors": []
+    }
+  ]
+}

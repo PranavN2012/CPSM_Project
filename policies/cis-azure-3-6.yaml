@@ -1,0 +1,15 @@
+id: cis-azure-3.6
+name: Ensure public access level is disabled for Storage Accounts
+provider: azure
+service: storage
+severity: CRITICAL
+description: Blob containers should not allow anonymous public read access.
+enabled: true
+check: check_blob_public_access
+remediation: ''
+auto_remediate: true
+compliance:
+- framework: CIS Azure
+  control: '3.6'
+feed_source: cis
+synced_at: '2026-03-21T17:54:16.286586+00:00'

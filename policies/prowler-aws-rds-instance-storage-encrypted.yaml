@@ -1,0 +1,18 @@
+id: prowler-aws-rds_instance_storage_encrypted
+name: RDS DB instance storage is encrypted at rest
+provider: aws
+service: rds
+severity: HIGH
+description: '**RDS DB instances** are assessed for **KMS-based encryption at rest**
+  (`StorageEncrypted=true`), covering instance storage and derived artifacts such
+  as snapshots, automated backups, and read replicas.'
+enabled: true
+check: prowler_rds_instance_storage_encrypted
+remediation: ''
+auto_remediate: false
+compliance:
+- framework: Prowler
+  control: rds_instance_storage_encrypted
+feed_source: prowler
+prowler_check: rds_instance_storage_encrypted
+synced_at: '2026-03-21T17:55:22.799136+00:00'

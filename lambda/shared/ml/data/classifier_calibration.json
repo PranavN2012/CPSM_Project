@@ -1,0 +1,38 @@
+{
+  "_note": "Labeled (narrative, technique_id, should_match) pairs used to calibrate the AttackClassifier's similarity threshold via Youden's J statistic. 16 positive + 16 negative pairs.",
+  "pairs": [
+    {"narrative": "An IAM role was granted a wildcard administrator policy attaching full access to all AWS services, allowing the identity to modify permissions for any other account in the environment.", "technique_id": "T1098", "should_match": true},
+    {"narrative": "A new IAM user was created with programmatic access keys shortly after a suspicious login, providing a fallback identity independent of the originally compromised account.", "technique_id": "T1136", "should_match": true},
+    {"narrative": "Multi-factor authentication was disabled on a privileged account and the account's trust policy was widened to accept assumption from any principal in the organization.", "technique_id": "T1556", "should_match": true},
+    {"narrative": "A low-privilege role assumed a highly permissive deployment role via a broad AssumeRole trust relationship, gaining administrative control over production resources.", "technique_id": "T1548", "should_match": true},
+    {"narrative": "An organization-wide service control policy was modified to remove a restriction on root account usage, weakening guardrails across every account in the tenant.", "technique_id": "T1484", "should_match": true},
+    {"narrative": "CloudTrail logging was disabled in a region immediately before a large number of security group changes were made, removing the audit trail for those changes.", "technique_id": "T1562", "should_match": true},
+    {"narrative": "An EC2 snapshot was copied to an external account and the original instance was terminated shortly afterward, removing traces of the compromised workload.", "technique_id": "T1578", "should_match": true},
+    {"narrative": "CloudTrail log files for the past week were deleted from the logging bucket, and log file validation was turned off to prevent detection of the tampering.", "technique_id": "T1070", "should_match": true},
+    {"narrative": "AWS access keys were found hardcoded in a public GitHub repository and were used minutes later to authenticate from an unfamiliar IP address.", "technique_id": "T1552", "should_match": true},
+    {"narrative": "A secrets manager vault containing database credentials and API keys was accessed by a role that had never previously read from that vault.", "technique_id": "T1555", "should_match": true},
+    {"narrative": "Dozens of MFA push notifications were sent to a user's device within a few minutes from a session that already held valid primary credentials.", "technique_id": "T1621", "should_match": true},
+    {"narrative": "An unfamiliar identity called ListBuckets, ListObjects, and DescribeInstances across every region in the account within a short burst, mapping out the environment's storage and compute resources.", "technique_id": "T1580", "should_match": true},
+    {"narrative": "A role with no prior storage access listed the contents of a customer data bucket and then downloaded a large number of individual objects from it, accessing data outside its normal baseline.", "technique_id": "T1530", "should_match": true},
+    {"narrative": "A large volume of objects was copied from a production storage bucket into a bucket owned by an unrelated external AWS account, moving the data outside of organizational control.", "technique_id": "T1537", "should_match": true},
+    {"narrative": "Every object in a production database table was deleted within seconds by an automated script, and the delete operation was not preceded by any backup or export activity.", "technique_id": "T1485", "should_match": true},
+    {"narrative": "All backup snapshots and point-in-time recovery settings for a database were disabled shortly before the primary tables were encrypted and became inaccessible to normal users.", "technique_id": "T1490", "should_match": true},
+
+    {"narrative": "A developer created a new S3 bucket for a personal project and left the default encryption settings unchanged during routine business hours.", "technique_id": "T1530", "should_match": false},
+    {"narrative": "A routine scheduled compliance scan queried the encryption configuration of every S3 bucket in the account, as it does every morning at 9 AM.", "technique_id": "T1580", "should_match": false},
+    {"narrative": "An engineer updated the color scheme of the internal dashboard application and pushed the change through the normal CI/CD pipeline.", "technique_id": "T1098", "should_match": false},
+    {"narrative": "A scheduled Lambda function ran its usual nightly job of aggregating daily metrics and writing a summary report to a reporting bucket.", "technique_id": "T1552", "should_match": false},
+    {"narrative": "A new employee's IAM user was provisioned through the standard onboarding automation with read-only access to the shared documentation wiki.", "technique_id": "T1136", "should_match": false},
+    {"narrative": "The security team rotated an old access key as part of a routine 90-day credential rotation policy and updated the corresponding secret in the vault.", "technique_id": "T1555", "should_match": false},
+    {"narrative": "A quarterly access review confirmed that an IAM role's permissions still matched its documented purpose and no changes were required.", "technique_id": "T1484", "should_match": false},
+    {"narrative": "An application health check pinged the CloudWatch Logs API every minute to confirm log delivery was functioning normally.", "technique_id": "T1070", "should_match": false},
+    {"narrative": "A backup job ran on schedule, creating a new snapshot of the production database and verifying the previous three snapshots were still retained.", "technique_id": "T1490", "should_match": false},
+    {"narrative": "A support engineer viewed the billing dashboard to check the current month's spend across services, as part of a routine cost review.", "technique_id": "T1621", "should_match": false},
+    {"narrative": "A CI pipeline assumed its designated deployment role, which it does on every merge to main, and pushed a new container image to the registry.", "technique_id": "T1548", "should_match": false},
+    {"narrative": "The on-call engineer manually re-enabled a security group rule that had been accidentally removed during a maintenance window earlier that day.", "technique_id": "T1562", "should_match": false},
+    {"narrative": "A data analyst ran a scheduled export of an internal reporting table to a shared analytics bucket used by the finance team every Friday.", "technique_id": "T1537", "should_match": false},
+    {"narrative": "An automated test suite created and deleted several temporary EC2 instances as part of its normal integration test run.", "technique_id": "T1578", "should_match": false},
+    {"narrative": "The IT helpdesk reset a user's password after a forgotten-password request submitted through the normal self-service portal.", "technique_id": "T1556", "should_match": false},
+    {"narrative": "A monitoring agent queried the list of running containers on a cluster once per minute as part of its standard health-check cycle.", "technique_id": "T1613", "should_match": false}
+  ]
+}

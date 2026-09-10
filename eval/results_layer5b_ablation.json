@@ -1,0 +1,80 @@
+{
+  "layer": "5b",
+  "name": "Ablation Study (blast radius weight)",
+  "real_weights": {
+    "anomaly": 0.25,
+    "classification": 0.2,
+    "blast_radius": 0.35,
+    "recency": 0.2
+  },
+  "ablated_weights": {
+    "anomaly": 0.36666666666666664,
+    "classification": 0.31666666666666665,
+    "blast_radius": 0.0,
+    "recency": 0.31666666666666665
+  },
+  "tiers_changed": 2,
+  "ranks_changed": 2,
+  "rows": [
+    {
+      "name": "critical_anomalous_recent",
+      "real_score": 86.75,
+      "real_tier": "P1",
+      "real_rank": 1,
+      "ablated_score": 79.17,
+      "ablated_tier": "P2",
+      "ablated_rank": 1,
+      "rank_changed": false
+    },
+    {
+      "name": "high_confident_recent",
+      "real_score": 71.0,
+      "real_tier": "P2",
+      "real_rank": 2,
+      "ablated_score": 68.67,
+      "ablated_tier": "P2",
+      "ablated_rank": 2,
+      "rank_changed": false
+    },
+    {
+      "name": "medium_moderate_novel",
+      "real_score": 50.0,
+      "real_tier": "P3",
+      "real_rank": 4,
+      "ablated_score": 50.0,
+      "ablated_tier": "P3",
+      "ablated_rank": 4,
+      "rank_changed": false
+    },
+    {
+      "name": "low_normal_old",
+      "real_score": 23.25,
+      "real_tier": "P4",
+      "real_rank": 6,
+      "ablated_score": 22.67,
+      "ablated_tier": "P4",
+      "ablated_rank": 6,
+      "rank_changed": false
+    },
+    {
+      "name": "unclassified_but_critical_blast",
+      "real_score": 60.0,
+      "real_tier": "P2",
+      "real_rank": 3,
+      "ablated_score": 37.83,
+      "ablated_tier": "P4",
+      "ablated_rank": 5,
+      "rank_changed": true
+    },
+    {
+      "name": "known_technique_low_impact",
+      "real_score": 44.25,
+      "real_tier": "P3",
+      "real_rank": 5,
+      "ablated_score": 55.33,
+      "ablated_tier": "P3",
+      "ablated_rank": 3,
+      "rank_changed": true
+    }
+  ]
+}

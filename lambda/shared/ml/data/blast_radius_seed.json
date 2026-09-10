@@ -1,0 +1,60 @@
+{
+  "nodes": [
+    {"id": "dev-intern-role", "type": "IAMRole", "tags": []},
+    {"id": "ci-deploy-role", "type": "IAMRole", "tags": ["admin"]},
+    {"id": "lambda-exec-role", "type": "IAMRole", "tags": []},
+    {"id": "backup-service-role", "type": "IAMRole", "tags": []},
+    {"id": "analyst-user", "type": "IAMUser", "tags": []},
+    {"id": "external-vendor-role", "type": "IAMRole", "tags": []},
+
+    {"id": "prod-data-lake-raw", "type": "S3Bucket", "tags": ["production", "pii"]},
+    {"id": "customer-reports-q1", "type": "S3Bucket", "tags": ["production", "pii", "payment"]},
+    {"id": "backup-vault", "type": "S3Bucket", "tags": ["production", "payment"]},
+    {"id": "staging-logs-2026", "type": "S3Bucket", "tags": []},
+    {"id": "dev-user-uploads", "type": "S3Bucket", "tags": []},
+    {"id": "analytics-exports", "type": "S3Bucket", "tags": []},
+    {"id": "ml-training-datasets", "type": "S3Bucket", "tags": ["production"]},
+    {"id": "cdn-static-assets", "type": "S3Bucket", "tags": []},
+
+    {"id": "cspm-remediation-events", "type": "DynamoDBTable", "tags": ["production"]},
+    {"id": "session-tokens-table", "type": "DynamoDBTable", "tags": ["production", "pii"]},
+
+    {"id": "cspm-s3-remediation", "type": "LambdaFunction", "tags": ["admin"]},
+    {"id": "cspm-api", "type": "LambdaFunction", "tags": []},
+    {"id": "report-generator", "type": "LambdaFunction", "tags": []},
+
+    {"id": "sg-web-public", "type": "SecurityGroup", "tags": []},
+    {"id": "sg-db-internal", "type": "SecurityGroup", "tags": ["production"]}
+  ],
+  "edges": [
+    {"source": "dev-intern-role", "target": "dev-user-uploads", "type": "can_read"},
+    {"source": "dev-intern-role", "target": "staging-logs-2026", "type": "can_read"},
+    {"source": "dev-intern-role", "target": "ci-deploy-role", "type": "can_assume"},
+
+    {"source": "ci-deploy-role", "target": "prod-data-lake-raw", "type": "can_administer"},
+    {"source": "ci-deploy-role", "target": "customer-reports-q1", "type": "can_administer"},
+    {"source": "ci-deploy-role", "target": "backup-vault", "type": "can_administer"},
+    {"source": "ci-deploy-role", "target": "cspm-s3-remediation", "type": "can_invoke"},
+    {"source": "ci-deploy-role", "target": "cspm-remediation-events", "type": "can_write"},
+
+    {"source": "lambda-exec-role", "target": "cspm-remediation-events", "type": "can_write"},
+    {"source": "lambda-exec-role", "target": "prod-data-lake-raw", "type": "can_read"},
+    {"source": "cspm-s3-remediation", "target": "lambda-exec-role", "type": "can_assume"},
+
+    {"source": "backup-service-role", "target": "backup-vault", "type": "can_write"},
+    {"source": "backup-service-role", "target": "session-tokens-table", "type": "can_read"},
+    {"source": "backup-service-role", "target": "sg-db-internal", "type": "can_administer"},
+
+    {"source": "analyst-user", "target": "analytics-exports", "type": "can_read"},
+    {"source": "analyst-user", "target": "ml-training-datasets", "type": "can_read"},
+    {"source": "analyst-user", "target": "backup-service-role", "type": "can_assume"},
+    {"source": "backup-service-role", "target": "ci-deploy-role", "type": "can_assume"},
+    {"source": "external-vendor-role", "target": "analyst-user", "type": "can_assume"},
+
+    {"source": "report-generator", "target": "cspm-remediation-events", "type": "can_read"},
+    {"source": "report-generator", "target": "cdn-static-assets", "type": "can_write"},
+
+    {"source": "cspm-api", "target": "cspm-remediation-events", "type": "can_read"},
+    {"source": "sg-web-public", "target": "sg-db-internal", "type": "can_read"}
+  ]
+}

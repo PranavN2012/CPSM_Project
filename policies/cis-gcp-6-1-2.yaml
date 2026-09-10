@@ -1,0 +1,15 @@
+id: cis-gcp-6.1.2
+name: Ensure Cloud SQL database instances require SSL connections
+provider: gcp
+service: sql
+severity: HIGH
+description: Cloud SQL instances should enforce SSL for all incoming connections.
+enabled: true
+check: check_cloudsql_ssl
+remediation: ''
+auto_remediate: true
+compliance:
+- framework: CIS GCP
+  control: 6.1.2
+feed_source: cis
+synced_at: '2026-03-21T17:54:16.907167+00:00'

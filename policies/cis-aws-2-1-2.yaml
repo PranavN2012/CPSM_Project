@@ -1,0 +1,16 @@
+id: cis-aws-2.1.2
+name: Ensure S3 bucket policy denies HTTP requests
+provider: aws
+service: s3
+severity: HIGH
+description: S3 bucket policies should enforce HTTPS-only access to protect data in
+  transit.
+enabled: true
+check: check_s3_https_only
+remediation: ''
+auto_remediate: true
+compliance:
+- framework: CIS AWS
+  control: 2.1.2
+feed_source: cis
+synced_at: '2026-03-21T17:54:14.900050+00:00'

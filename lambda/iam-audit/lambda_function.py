@@ -31,6 +31,12 @@ except ImportError:
     def create_github_issue(**kwargs):
         pass
 
+try:
+    from nlg_engine import generate_incident_summary
+except ImportError:
+    def generate_incident_summary(**kwargs):
+        return ""
+
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
@@ -49,6 +55,28 @@ http = urllib3.PoolManager()
 # Main Handler
 # ---------------------------------------------------------------------------
 
+def _unresolved_iam_audit_resources() -> set:
+    """Resources that already have a logged, not-yet-fixed IAM Audit
+    finding. Used to skip re-logging a duplicate event every time the scan
+    runs against a still-broken identity — previously every scan logged a
+    fresh event for a persistently overpermissive identity even though
+    nothing about it had changed since the last scan, inflating the event
+    log (and permanently dragging the compliance score) with duplicates of
+    the same unresolved problem. Logging resumes normally once the
+    identity's status changes away from IAM_OVERPERMISSIVE (fixed, or
+    flagged again after a genuine regression)."""
+    try:
+        table = dynamodb.Table(DYNAMODB_TABLE_NAME)
+        resp = table.scan(
+            FilterExpression="vulnerability_type = :vt AND #s = :st",
+            ExpressionAttributeNames={"#s": "status"},
+            ExpressionAttributeValues={":vt": "IAM Audit", ":st": "IAM_OVERPERMISSIVE"},
+        )
+        return {item["bucket_name"] for item in resp.get("Items", [])}
+    except ClientError:
+        return set()
+
+
 def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
     """
     Scans IAM policies and reports overly permissive configurations.
@@ -56,6 +84,7 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
     """
     logger.info("Starting IAM audit scan...")
 
+    already_flagged = _unresolved_iam_audit_resources()
     findings = []
 
     # Scan all IAM users
@@ -85,6 +114,21 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
     region = event.get("region", "us-east-1")
 
     for finding in findings:
+        if finding["resource"] in already_flagged:
+            continue  # already logged and still unresolved — don't duplicate
+
+        nlp_summary = generate_incident_summary(
+            resource_name=finding["resource"],
+            account_id=account_id,
+            region=region,
+            status="IAM_OVERPERMISSIVE",
+            event_name="IAMAuditScan",
+            vulnerability_type="IAM Audit",
+            severity=finding["severity"],
+            dynamodb_table=dynamodb.Table(DYNAMODB_TABLE_NAME),
+            iam_policy_details=finding.get("details", ""),
+        )
+
         log_event_to_dynamodb(
             bucket_name=finding["resource"],
             account_id=account_id,
@@ -93,6 +137,7 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
             event_name="IAMAuditScan",
             vulnerability_type="IAM Audit",
             severity=finding["severity"],
+            nlp_summary=nlp_summary,
         )
 
         send_discord_notification(
@@ -102,6 +147,7 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
             status="IAM_OVERPERMISSIVE",
             details=finding["details"],
             severity=finding["severity"],
+            nlp_summary=nlp_summary,
         )
 
         create_github_issue(
@@ -112,7 +158,7 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
             region=region,
             status="IAM_OVERPERMISSIVE",
             severity=finding["severity"],
-            details=finding["details"],
+            details=nlp_summary,
         )
 
     logger.info("IAM audit complete. Found %d issues.", len(findings))
@@ -225,22 +271,34 @@ def is_admin_policy(policy_arn: str) -> bool:
 
 
 def find_wildcards(policy_document: dict) -> list[str]:
-    """Find wildcard (*) usages in a policy document."""
+    """Find wildcard (*) usages in a policy document.
+
+    Flags any Action containing a "*" anywhere — a bare "*", a service-level
+    wildcard ("s3:*"), and a partial-action wildcard ("s3:Get*") are all
+    broader than a single explicit action and all worth a human's attention;
+    a security audit tool should over-flag rather than silently let a
+    lesser-but-still-broad wildcard slip through as "not really a wildcard".
+    Effect is compared case-insensitively: AWS's own policy grammar only
+    ever emits "Allow"/"Deny" exactly, but this tool also processes
+    policy documents that never went through AWS's validation (e.g. drafts
+    from policy_generator.py), so case is not a safe bypass to rely on.
+    """
     wildcards = []
     statements = policy_document.get("Statement", [])
     if isinstance(statements, dict):
         statements = [statements]
 
     for stmt in statements:
-        if stmt.get("Effect") != "Allow":
+        effect = stmt.get("Effect", "")
+        if not isinstance(effect, str) or effect.lower() != "allow":
             continue
 
         actions = stmt.get("Action", [])
         if isinstance(actions, str):
             actions = [actions]
         for action in actions:
-            if action == "*":
-                wildcards.append("Action:*")
+            if isinstance(action, str) and "*" in action:
+                wildcards.append(f"Action:{action}")
                 break
 
         resources = stmt.get("Resource", [])
@@ -261,10 +319,11 @@ def find_wildcards(policy_document: dict) -> list[str]:
 def log_event_to_dynamodb(
     bucket_name, account_id, region, status, event_name,
     vulnerability_type="IAM Audit", severity="HIGH",
+    nlp_summary="",
 ):
     try:
         table = dynamodb.Table(DYNAMODB_TABLE_NAME)
-        table.put_item(Item={
+        item = {
             "event_id": str(uuid.uuid4()),
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "bucket_name": bucket_name,
@@ -274,29 +333,37 @@ def log_event_to_dynamodb(
             "event_name": event_name,
             "vulnerability_type": vulnerability_type,
             "severity": severity,
-        })
+        }
+        if nlp_summary:
+            item["nlp_summary"] = nlp_summary
+        table.put_item(Item=item)
     except ClientError as exc:
         logger.error("DynamoDB write failed: %s", exc)
 
 
 def send_discord_notification(
     resource, account_id, region, status, details="", severity="HIGH",
+    nlp_summary="",
 ):
     if not DISCORD_WEBHOOK_URL:
         return
 
     color = 0xE74C3C if severity == "CRITICAL" else 0xF39C12
 
+    fields = [
+        {"name": "🔑 Resource", "value": f"`{resource}`", "inline": True},
+        {"name": "🏢 Account", "value": f"`{account_id}`", "inline": True},
+        {"name": "⚠️ Severity", "value": f"**{severity}**", "inline": True},
+        {"name": "📝 Details", "value": details[:500], "inline": False},
+    ]
+    if nlp_summary:
+        fields.append({"name": "🧠 AI Incident Summary", "value": nlp_summary[:1024], "inline": False})
+
     embed = {
         "title": "👤 CSPM — IAM Overpermissive Policy Detected",
         "color": color,
-        "fields": [
-            {"name": "🔑 Resource", "value": f"`{resource}`", "inline": True},
-            {"name": "🏢 Account", "value": f"`{account_id}`", "inline": True},
-            {"name": "⚠️ Severity", "value": f"**{severity}**", "inline": True},
-            {"name": "📝 Details", "value": details[:500], "inline": False},
-        ],
-        "footer": {"text": "Serverless CSPM • IAM Audit"},
+        "fields": fields,
+        "footer": {"text": "Serverless CSPM • IAM Audit • NLG Engine v1.0"},
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 

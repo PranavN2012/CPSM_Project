@@ -1,0 +1,16 @@
+id: cis-gcp-5.1
+name: Ensure Cloud Storage buckets are not anonymously accessible
+provider: gcp
+service: storage
+severity: CRITICAL
+description: Cloud Storage buckets should not grant allUsers or allAuthenticatedUsers
+  access.
+enabled: true
+check: check_gcs_public
+remediation: ''
+auto_remediate: true
+compliance:
+- framework: CIS GCP
+  control: '5.1'
+feed_source: cis
+synced_at: '2026-03-21T17:54:16.792398+00:00'

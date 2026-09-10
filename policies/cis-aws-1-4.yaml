@@ -1,0 +1,16 @@
+id: cis-aws-1.4
+name: Ensure no root access key exists
+provider: aws
+service: iam
+severity: CRITICAL
+description: The root account should not have access keys. Root API access keys provide
+  unrestricted access to all AWS services.
+enabled: true
+check: check_root_access_keys
+remediation: ''
+auto_remediate: false
+compliance:
+- framework: CIS AWS
+  control: '1.4'
+feed_source: cis
+synced_at: '2026-03-21T17:54:14.451087+00:00'

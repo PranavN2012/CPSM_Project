@@ -1,0 +1,21 @@
+id: aws-sg-open-ssh
+name: Security Group Open SSH
+provider: aws
+service: ec2
+severity: HIGH
+enabled: true
+description: Security groups must not allow unrestricted inbound SSH (port 22) access
+  from 0.0.0.0/0.
+compliance:
+- framework: CIS AWS
+  control: '5.2'
+  title: Ensure no security group allows ingress from 0.0.0.0/0 to port 22
+- framework: SOC 2
+  control: CC6.6
+  title: Security measures against threats outside system boundaries
+- framework: PCI-DSS
+  control: 1.3.2
+  title: Limit inbound internet traffic to system components
+check: check_security_group_ssh
+remediation: remediate_sg_ssh
+auto_remediate: true

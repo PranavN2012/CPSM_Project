@@ -1,0 +1,19 @@
+id: auto-aws-ebs-encryption
+name: EC2 Ebs Encryption
+provider: aws
+service: ec2
+severity: HIGH
+description: Auto-generated from ebs encryption incident
+enabled: false
+check: check_ebs_encryption
+remediation: ''
+auto_remediate: false
+auto_generated: true
+needs_review: true
+generated_from:
+  event_type: ebs_encryption
+  resource: vol-4a3b8567
+  timestamp: '2026-03-22T16:43:08.420484+00:00'
+compliance:
+- framework: Custom
+  control: Auto-detected

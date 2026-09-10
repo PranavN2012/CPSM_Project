@@ -1,0 +1,20 @@
+id: gcp-bucket-public
+name: GCP Cloud Storage Public Access
+provider: gcp
+service: storage
+severity: CRITICAL
+enabled: true
+description: "GCP Cloud Storage buckets must not be publicly accessible. Enforce uniform bucket-level access and remove allUsers/allAuthenticatedUsers IAM bindings."
+compliance:
+  - framework: CIS GCP
+    control: "5.1"
+    title: "Ensure that Cloud Storage bucket is not anonymously or publicly accessible"
+  - framework: SOC 2
+    control: CC6.1
+    title: "Logical and Physical Access Controls"
+  - framework: PCI-DSS
+    control: "7.1"
+    title: "Limit access to system components"
+check: check_gcs_public_access
+remediation: remediate_gcs_public_access
+auto_remediate: true

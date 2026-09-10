@@ -1,0 +1,16 @@
+id: prowler-aws-s3_bucket_server_side_encryption
+name: S3 Bucket Server-Side Encryption
+provider: aws
+service: s3
+severity: MEDIUM
+description: 'Prowler: S3 Bucket Server-Side Encryption'
+enabled: true
+check: prowler_s3_bucket_server_side_encryption
+remediation: ''
+auto_remediate: false
+compliance:
+- framework: Prowler
+  control: s3_bucket_server_side_encryption
+feed_source: prowler
+prowler_check: s3_bucket_server_side_encryption
+synced_at: '2026-03-21T17:55:18.174145+00:00'

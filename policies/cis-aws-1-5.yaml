@@ -1,0 +1,16 @@
+id: cis-aws-1.5
+name: Ensure MFA is enabled for root account
+provider: aws
+service: iam
+severity: CRITICAL
+description: The root account should have multi-factor authentication enabled to add
+  an extra layer of protection.
+enabled: true
+check: check_root_mfa
+remediation: ''
+auto_remediate: false
+compliance:
+- framework: CIS AWS
+  control: '1.5'
+feed_source: cis
+synced_at: '2026-03-21T17:54:14.521121+00:00'

@@ -1,0 +1,16 @@
+id: prowler-aws-lambda_function_url_public
+name: Lambda Public URL
+provider: aws
+service: lambda
+severity: MEDIUM
+description: 'Prowler: Lambda Public URL'
+enabled: true
+check: prowler_lambda_function_url_public
+remediation: ''
+auto_remediate: false
+compliance:
+- framework: Prowler
+  control: lambda_function_url_public
+feed_source: prowler
+prowler_check: lambda_function_url_public
+synced_at: '2026-03-21T17:55:25.864936+00:00'

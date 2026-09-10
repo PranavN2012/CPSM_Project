@@ -1,0 +1,20 @@
+id: prowler-aws-s3_bucket_public_access
+name: S3 bucket is not publicly accessible to Everyone or Authenticated Users
+provider: aws
+service: s3
+severity: CRITICAL
+description: '**Amazon S3 buckets** are evaluated for **public access** via ACLs and
+  bucket policies. The check identifies account or bucket `PublicAccessBlock` protections
+  (`IgnorePublicAcls`, `RestrictPublicBuckets`) and flags buckets granting group access
+  to `AllUsers` or `AuthenticatedUsers`, or with a public bucket policy.'
+enabled: true
+check: prowler_s3_bucket_public_access
+remediation: aws s3api put-public-access-block --bucket <bucket_name> --public-access-block-configuration
+  IgnorePublicAcls=true,RestrictPublicBuckets=true
+auto_remediate: false
+compliance:
+- framework: Prowler
+  control: s3_bucket_public_access
+feed_source: prowler
+prowler_check: s3_bucket_public_access
+synced_at: '2026-03-21T17:55:17.571660+00:00'

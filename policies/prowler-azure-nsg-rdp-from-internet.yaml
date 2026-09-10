@@ -1,0 +1,16 @@
+id: prowler-azure-nsg_rdp_from_internet
+name: NSG RDP Open
+provider: azure
+service: network
+severity: MEDIUM
+description: 'Prowler: NSG RDP Open'
+enabled: true
+check: prowler_nsg_rdp_from_internet
+remediation: ''
+auto_remediate: false
+compliance:
+- framework: Prowler
+  control: nsg_rdp_from_internet
+feed_source: prowler
+prowler_check: nsg_rdp_from_internet
+synced_at: '2026-03-21T17:55:28.222947+00:00'

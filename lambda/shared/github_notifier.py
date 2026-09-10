@@ -12,8 +12,7 @@ import urllib3
 
 logger = logging.getLogger(__name__)
 
-GITHUB_TOKEN: str = os.environ.get("GITHUB_TOKEN", "")
-GITHUB_REPO: str = os.environ.get("GITHUB_REPO", "")  # e.g., "username/repo-name"
+# Tokens will be loaded dynamically inside the function
 
 http = urllib3.PoolManager()
 
@@ -51,7 +50,10 @@ def create_github_issue(
 
     Returns True if successful, False otherwise.
     """
-    if not GITHUB_TOKEN or not GITHUB_REPO:
+    token = os.environ.get("GITHUB_TOKEN", "")
+    repo = os.environ.get("GITHUB_REPO", "")
+
+    if not token or not repo:
         logger.warning("GITHUB_TOKEN or GITHUB_REPO not set — skipping Issue creation.")
         return False
 
@@ -96,7 +98,7 @@ def create_github_issue(
         "labels": labels,
     }).encode("utf-8")
 
-    url = f"https://api.github.com/repos/{GITHUB_REPO}/issues"
+    url = f"https://api.github.com/repos/{repo}/issues"
 
     try:
         response = http.request(
@@ -105,7 +107,7 @@ def create_github_issue(
             body=payload,
             headers={
                 "Content-Type": "application/json",
-                "Authorization": f"token {GITHUB_TOKEN}",
+                "Authorization": f"token {token}",
                 "Accept": "application/vnd.github.v3+json",
                 "User-Agent": "CSPM-Bot",
             },

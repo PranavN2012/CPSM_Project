@@ -1,0 +1,16 @@
+id: cis-aws-3.4
+name: Ensure CloudTrail log file validation is enabled
+provider: aws
+service: cloudtrail
+severity: MEDIUM
+description: CloudTrail log file validation should be enabled to detect tampering
+  or unauthorized modifications.
+enabled: true
+check: check_cloudtrail_log_validation
+remediation: ''
+auto_remediate: true
+compliance:
+- framework: CIS AWS
+  control: '3.4'
+feed_source: cis
+synced_at: '2026-03-21T17:54:15.502163+00:00'

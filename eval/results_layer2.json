@@ -1,0 +1,25 @@
+{
+  "layer": 2,
+  "name": "ATT&CK Classification",
+  "n_events": 23,
+  "accuracy": 1.0,
+  "macro_precision": 1.0,
+  "macro_recall": 1.0,
+  "macro_f1": 1.0,
+  "labels": [
+    "T1098",
+    "UNKNOWN"
+  ],
+  "confusion_matrix": [
+    [
+      9,
+      0
+    ],
+    [
+      0,
+      14
+    ]
+  ],
+  "threshold_calibrated": true,
+  "threshold": 0.4478
+}

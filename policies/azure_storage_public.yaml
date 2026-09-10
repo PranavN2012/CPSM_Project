@@ -1,0 +1,20 @@
+id: azure-storage-public
+name: Azure Blob Storage Public Access
+provider: azure
+service: storage
+severity: CRITICAL
+enabled: true
+description: "Azure Blob Storage containers must not allow anonymous public read access. Disable public access at the storage account level."
+compliance:
+  - framework: CIS Azure
+    control: "3.6"
+    title: "Ensure that public access level is set to Private for Blob Containers"
+  - framework: SOC 2
+    control: CC6.1
+    title: "Logical and Physical Access Controls"
+  - framework: PCI-DSS
+    control: "7.1"
+    title: "Limit access to system components"
+check: check_blob_public_access
+remediation: remediate_blob_public_access
+auto_remediate: true

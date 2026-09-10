@@ -144,6 +144,51 @@ COMPLIANCE_MAP = {
             },
         ],
     },
+    "Security Group Open SSH": {
+        "description": "Security Groups must not permit unrestricted SSH (port 22) ingress from 0.0.0.0/0.",
+        "controls": [
+            {
+                "framework": "CIS AWS",
+                "control_id": "5.2",
+                "title": "Ensure no security groups allow ingress from 0.0.0.0/0 to port 22",
+                "severity": "CRITICAL",
+                "section": "Networking",
+            },
+            {
+                "framework": "SOC 2",
+                "control_id": "CC6.6",
+                "title": "Implement logical access security software, infrastructure, and architectures",
+                "severity": "HIGH",
+                "section": "Common Criteria",
+            },
+            {
+                "framework": "PCI-DSS",
+                "control_id": "1.3.2",
+                "title": "Limit inbound Internet traffic to IP addresses within the DMZ",
+                "severity": "CRITICAL",
+                "section": "Build and Maintain a Secure Network",
+            },
+        ],
+    },
+    "DynamoDB Unencrypted": {
+        "description": "DynamoDB tables must be encrypted using AWS KMS to protect data at rest.",
+        "controls": [
+            {
+                "framework": "SOC 2",
+                "control_id": "CC6.1",
+                "title": "Logical and Physical Access Controls - Encryption of data at rest",
+                "severity": "HIGH",
+                "section": "Common Criteria",
+            },
+            {
+                "framework": "PCI-DSS",
+                "control_id": "3.4",
+                "title": "Render PAN unreadable anywhere it is stored (encryption)",
+                "severity": "HIGH",
+                "section": "Protect Stored Account Data",
+            },
+        ],
+    },
 }
 
 

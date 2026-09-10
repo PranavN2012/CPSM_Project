@@ -1,0 +1,16 @@
+id: prowler-gcp-compute_firewall_allow_ingress_from_internet_to_port_22
+name: Firewall SSH Open
+provider: gcp
+service: compute
+severity: MEDIUM
+description: 'Prowler: Firewall SSH Open'
+enabled: true
+check: prowler_compute_firewall_allow_ingress_from_internet_to_port_22
+remediation: ''
+auto_remediate: false
+compliance:
+- framework: Prowler
+  control: compute_firewall_allow_ingress_from_internet_to_port_22
+feed_source: prowler
+prowler_check: compute_firewall_allow_ingress_from_internet_to_port_22
+synced_at: '2026-03-21T17:55:29.662077+00:00'

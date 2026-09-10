@@ -1,0 +1,16 @@
+id: prowler-aws-ec2_securitygroup_allow_ingress_from_internet_to_port_22
+name: SG Open SSH
+provider: aws
+service: ec2
+severity: MEDIUM
+description: 'Prowler: SG Open SSH'
+enabled: true
+check: prowler_ec2_securitygroup_allow_ingress_from_internet_to_port_22
+remediation: ''
+auto_remediate: false
+compliance:
+- framework: Prowler
+  control: ec2_securitygroup_allow_ingress_from_internet_to_port_22
+feed_source: prowler
+prowler_check: ec2_securitygroup_allow_ingress_from_internet_to_port_22
+synced_at: '2026-03-21T17:55:19.415903+00:00'

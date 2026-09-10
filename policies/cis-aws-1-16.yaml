@@ -1,0 +1,16 @@
+id: cis-aws-1.16
+name: Ensure IAM policies with full administrative privileges are not attached
+provider: aws
+service: iam
+severity: CRITICAL
+description: IAM policies should not allow full administrative privileges. Use least-privilege
+  access.
+enabled: true
+check: check_iam_admin_policy
+remediation: ''
+auto_remediate: false
+compliance:
+- framework: CIS AWS
+  control: '1.16'
+feed_source: cis
+synced_at: '2026-03-21T17:54:14.686107+00:00'

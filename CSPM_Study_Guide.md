@@ -1,382 +1,213 @@
-# Serverless CSPM (Cloud Security Posture Management) — Complete Study Guide
-
-## 1. What Is CSPM?
-
-Cloud Security Posture Management (CSPM) is a category of security tools that continuously monitor cloud infrastructure for misconfigurations, compliance violations, and security risks. CSPM tools automatically detect when cloud resources (like storage buckets, databases, virtual machines) are configured in ways that could expose sensitive data or create attack vectors.
-
-In production environments, companies like Palo Alto (Prisma Cloud), Wiz, and Orca Security sell CSPM solutions for thousands of dollars per month. This project builds a focused, open-source CSPM tool that specifically targets one of the most common cloud misconfigurations: publicly accessible S3 storage buckets.
-
-### Why S3 Public Access Is Dangerous
-
-Amazon S3 (Simple Storage Service) is the most widely used cloud storage service. When an S3 bucket is made public, anyone on the internet can access its contents. Major data breaches caused by public S3 buckets include:
-- Capital One (2019): 100 million customer records exposed
-- US Department of Defense: 1.8 billion social media posts exposed  
-- Twitch (2021): Entire source code leaked via misconfigured storage
-
-AWS provides four security flags to control public access on S3 buckets:
-- **BlockPublicAcls**: Prevents new public ACLs from being applied
-- **IgnorePublicAcls**: Ignores any existing public ACLs
-- **BlockPublicPolicy**: Prevents new public bucket policies
-- **RestrictPublicBuckets**: Restricts access to buckets with public policies
-
-If any of these are set to False, the bucket could potentially be made public. Our CSPM tool detects this and automatically sets all four to True.
+# Serverless CSPM (Cloud Security Posture Management)
+## Comprehensive Interview & Study Guide
 
 ---
 
-## 2. Serverless Computing
-
-### What Is Serverless?
-
-Serverless computing is a cloud execution model where the cloud provider (AWS, Azure, GCP) manages the server infrastructure entirely. You write code (functions), upload it, and the cloud runs it only when triggered. You pay only for the exact compute time used — no idle server costs.
-
-### AWS Lambda
-
-AWS Lambda is Amazon's serverless compute service. Key concepts:
-- **Handler Function**: The entry point of your code (e.g., `lambda_handler(event, context)`)
-- **Event**: The input data that triggers the function (JSON payload)
-- **Context**: Runtime information (function name, memory, time remaining)
-- **Cold Start**: The first invocation takes longer because AWS must initialize a container
-- **Timeout**: Maximum execution time (default 3s, configurable up to 15 minutes)
-- **Memory**: Configurable from 128 MB to 10 GB (CPU scales proportionally)
-
-Lambda supports Python, Node.js, Java, Go, .NET, Ruby, and custom runtimes.
-
-### How Lambda Works in This Project
-
-We have two Lambda functions:
-
-**Remediation Lambda** — Triggered by EventBridge when someone creates or modifies an S3 bucket. It:
-1. Parses the CloudTrail event to extract the bucket name
-2. Calls `s3.get_public_access_block()` to inspect the current config
-3. If any flag is False, calls `s3.put_public_access_block()` to fix it
-4. Logs the event to DynamoDB
-5. Sends a Discord notification
-
-**API Lambda** — Triggered by API Gateway when the dashboard makes an HTTP request. It:
-1. Routes the request based on path (/events or /stats)
-2. Scans DynamoDB for remediation records
-3. Returns JSON with CORS headers
+### 1. Core Concept: What is a CSPM?
+**Cloud Security Posture Management (CSPM)** is a class of security tools designed to identify and remediate risks across cloud infrastructures (AWS, Azure, GCP). 
+- **The Problem:** Cloud environments are highly complex. Developers constantly spin up resources via infrastructure-as-code (IaC). A single typo (like leaving an S3 bucket public) can lead to a massive data breach (e.g., the Capital One breach in 2019, or Twitch source code leak in 2021).
+- **The Solution:** A CSPM continuously monitors the cloud environment, compares configurations against strict security best practices, alerts administrators, and can **automatically remediate** (fix) the vulnerabilities in real-time.
+- **This Project:** We built a custom, event-driven CSPM using AWS Serverless technologies that detects vulnerabilities, maps them to regulatory frameworks, and auto-remediates them in milliseconds.
 
 ---
 
-## 3. AWS Services Used
-
-### Amazon S3 (Simple Storage Service)
-
-S3 is object storage — you store files (objects) in containers (buckets). Key concepts:
-- **Bucket**: A container with a globally unique name
-- **Object**: A file stored in a bucket (identified by key/path)
-- **Bucket Policy**: JSON policy controlling who can access the bucket
-- **ACL (Access Control List)**: Legacy mechanism for controlling access
-- **Public Access Block**: Account-level or bucket-level settings to prevent public access
-- **Static Website Hosting**: S3 can serve HTML/CSS/JS as a website
-
-In this project, S3 is used for:
-- The target being monitored (S3 buckets created by users)
-- Hosting the dashboard frontend as a static website
-
-### AWS CloudTrail
-
-CloudTrail is AWS's audit logging service. It records every API call made in your AWS account:
-- Who made the call (IAM user/role)
-- What API was called (e.g., `CreateBucket`, `PutBucketPublicAccessBlock`)
-- When it happened (timestamp)
-- Where (region, source IP)
-- Request parameters and response
-
-CloudTrail events are the foundation of our detection mechanism. Without CloudTrail, we wouldn't know when S3 changes happen.
-
-### Amazon EventBridge
-
-EventBridge (formerly CloudWatch Events) is a serverless event bus. It routes events from AWS services to targets (Lambda, SQS, SNS, etc.) based on pattern-matching rules.
-
-Our EventBridge rule pattern:
-```json
-{
-  "source": ["aws.s3"],
-  "detail-type": ["AWS API Call via CloudTrail"],
-  "detail": {
-    "eventSource": ["s3.amazonaws.com"],
-    "eventName": ["CreateBucket", "PutBucketPublicAccessBlock"]
-  }
-}
-```
-
-This means: "Whenever CloudTrail sees a CreateBucket or PutBucketPublicAccessBlock API call, send the event to our Lambda."
-
-### Amazon DynamoDB
-
-DynamoDB is a serverless NoSQL database. Key concepts:
-- **Table**: A collection of items (similar to a SQL table)
-- **Item**: A record (similar to a row)
-- **Partition Key (Hash Key)**: The primary identifier for each item
-- **Sort Key (Range Key)**: Optional secondary key for ordering
-- **Scan**: Read every item in the table (expensive, but fine for small tables)
-- **Query**: Read items matching a specific partition key (efficient)
-- **PAY_PER_REQUEST**: Billing mode where you pay per read/write (no provisioning)
-
-Our DynamoDB table schema:
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| event_id | String (PK) | UUID for each remediation event |
-| timestamp | String | ISO 8601 timestamp |
-| bucket_name | String | Name of the affected S3 bucket |
-| account_id | String | AWS account ID |
-| region | String | AWS region |
-| status | String | REMEDIATED, COMPLIANT, or REMEDIATION_FAILED |
-| event_name | String | CloudTrail API event name |
-
-### Amazon API Gateway
-
-API Gateway is a managed service for creating REST/HTTP APIs. We use HTTP API (v2) which is simpler and cheaper than REST API (v1).
-
-Our API routes:
-- `GET /events` → Returns all remediation events from DynamoDB
-- `GET /stats` → Returns aggregate statistics
-
-API Gateway handles:
-- CORS (Cross-Origin Resource Sharing) headers
-- Request routing to Lambda
-- TLS/SSL termination
-
-### AWS IAM (Identity and Access Management)
-
-IAM controls who can do what in AWS. Key concepts:
-- **User**: A person or application with credentials
-- **Role**: A set of permissions that can be assumed by services
-- **Policy**: A JSON document defining allowed/denied actions
-- **Principle of Least Privilege**: Grant only the minimum permissions needed
-
-Our IAM design follows least privilege:
-
-**Remediation Lambda Role** — can only:
-- `s3:GetBucketPublicAccessBlock` (inspect buckets)
-- `s3:PutBucketPublicAccessBlock` (fix buckets)
-- `dynamodb:PutItem` on our specific table (log events)
-- `logs:CreateLogGroup/Stream, PutLogEvents` (write its own logs)
-
-**API Lambda Role** — can only:
-- `dynamodb:Scan, Query, GetItem` on our specific table (read events)
-- `logs:CreateLogGroup/Stream, PutLogEvents` (write its own logs)
-
-Notice: The remediation Lambda cannot read DynamoDB, and the API Lambda cannot modify S3. This is intentional — if either is compromised, the blast radius is minimized.
+### 2. Is this "Blue Teaming"?
+**Yes, absolutely.** This falls strictly under **Blue Teaming** (Defensive Security) and **DevSecOps** (Development, Security, and Operations).
+- **Red Team (Offensive):** Tries to find misconfigurations (like public S3 buckets) to exfiltrate data or escalate privileges.
+- **Blue Team (Defensive):** Builds the automated guardrails and monitoring systems (like this CSPM) to detect and block the Red Team's attempts. 
+- **DevSecOps:** We are integrating security directly into the developer workflow (via GitHub Actions CI/CD) and infrastructure (via Terraform).
 
 ---
 
-## 4. Python and boto3
+### 3. Vulnerability Detection & Remediation Engine
+Our CSPM focuses on the most critical AWS vulnerabilities:
 
-### What Is boto3?
+#### A. S3 Public Access (Data Exfiltration Risk)
+- **The Risk:** S3 buckets hold company data. If `Block Public Access` is turned off, anyone on the internet can potentially view or download the files. AWS provides four security flags: `BlockPublicAcls`, `IgnorePublicAcls`, `BlockPublicPolicy`, `RestrictPublicBuckets`. If any are false, it's vulnerable.
+- **The Detection:** Our Lambda function intercepts the `CreateBucket` or `PutBucketPublicAccessBlock` events.
+- **The Remediation:** The Lambda uses `boto3` to immediately inject a `PutPublicAccessBlock` API call, overriding the user and securely locking the bucket.
 
-boto3 is the official AWS SDK for Python. It allows Python code to interact with AWS services programmatically. Every AWS service has a corresponding boto3 client.
+#### B. S3 Unencrypted Buckets (Data at Rest Risk)
+- **The Risk:** Without Server-Side Encryption (SSE), data is stored in plaintext on AWS physical drives. 
+- **The Detection & Remediation:** We detect a lack of encryption and enforce AES-256 encryption automatically.
 
-Key boto3 concepts:
-- **Client**: Low-level interface that maps 1:1 to AWS API calls
-- **Resource**: Higher-level, object-oriented interface (not available for all services)
-- **Session**: Manages credentials and configuration
-- **Paginator**: Handles multi-page API responses automatically
-- **Waiter**: Polls a resource until it reaches a desired state
+#### C. IAM Overpermissive Policies (Privilege Escalation Risk)
+- **The Risk:** Developers often use `Action: "*", Resource: "*"` (wildcard) out of laziness. If that user's access keys are leaked, the hacker has total administrative control over the entire AWS account.
+- **The Detection:** Our IAM Audit Lambda scans newly attached user policies, specifically looking for wildcard JSON blocks, and enforces the **Principle of Least Privilege**.
 
-### Exception Handling with boto3
+#### D. Security Group Open SSH (Network Perimeter Risk)
+- **The Risk:** Leaving SSH (Port 22) open to the internet (`0.0.0.0/0`) allows attackers to brute-force or exploit vulnerabilities in the EC2 instance's OS, potentially gaining a foothold inside the VPC.
+- **The Detection:** The Lambda intercepts `AuthorizeSecurityGroupIngress` and `CreateSecurityGroup` events.
+- **The Remediation:** The Lambda uses Boto3 to instantly `revoke_security_group_ingress`, removing the overly permissive rule while leaving the rest of the Security Group intact.
 
-AWS API calls can fail. boto3 raises `ClientError` exceptions with error codes:
-```python
-from botocore.exceptions import ClientError
+#### E. DynamoDB Unencrypted Tables (Data at Rest Risk)
+- **The Risk:** Storing sensitive NoSQL data without encryption means a physical breach or snapshot theft could expose PII or credentials. 
+- **The Detection:** Scans `CreateTable` events for the `SSESpecification` block.
+- **The Remediation:** Enforces `ServerSideEncryptionConfiguration` (KMS AES-256) via a quick API payload update.
 
-try:
-    s3_client.get_public_access_block(Bucket="my-bucket")
-except ClientError as exc:
-    error_code = exc.response["Error"]["Code"]
-    if error_code == "NoSuchBucket":
-        # Bucket was deleted
-    elif error_code == "NoSuchPublicAccessConfiguration":
-        # No config exists — treat as fully open
-    elif error_code == "AccessDenied":
-        # Insufficient permissions
-```
-
-Our code handles these specific cases:
-- **NoSuchBucket**: The bucket was deleted between the event firing and our Lambda running
-- **NoSuchPublicAccessConfiguration**: The bucket has no public access block at all (most dangerous — fully open)
-- **AccessDenied**: The Lambda role lacks permissions for that specific bucket
+#### Python and boto3 Exception Handling
+Our remediation lambdas use boto3 (the AWS SDK). We have to gracefully handle edge cases:
+- **`NoSuchBucket`**: The hacker deleted the bucket before our Lambda could remediate it.
 
 ---
 
-## 5. Discord Webhooks
+### 4. NLP-Powered Incident Intelligence Engine
+Our CSPM includes an in-house **Natural Language Generation (NLG) engine** (`nlg_engine.py`) that transforms raw JSON events into contextual, audit-grade incident narratives. The same deterministic NLG technique is used by enterprise SIEMs like Splunk, Datadog, and PagerDuty.
 
-A Discord webhook is a URL that accepts POST requests and posts messages to a Discord channel. It's a simple way to send notifications without building a bot.
+#### A. Template-Based NLG (Core Engine)
+- **Technique:** Conditional slot-filling — maps each `vulnerability_type × status` combination to pre-built narrative templates.
+- **Output:** A 3-sentence summary: *(What happened)* + *(Why it matters — compliance)* + *(What was done)*.
+- **Example:** *"A configuration change in account 987654321098 created S3 bucket `prod-data-lake` in us-east-1. This poses a critical risk of unauthorized internet-wide data exposure, violating CIS AWS 2.1.5, SOC 2 CC6.1, PCI-DSS 7.1. CloudSentry auto-remediated by injecting a PutPublicAccessBlock API call."*
 
-### Webhook Payload Format
+#### B. Sentiment-Weighted Severity Scoring
+- **Technique:** Keyword-based sentiment analysis scans resource names for risk indicators.
+- **How it works:** 30+ keywords are scored in 3 tiers — critical (`prod`, `customer`, `payment`, `credential`, `secret`), high (`backup`, `vault`, `session`, `user`), and low (`dev`, `test`, `sandbox`). The cumulative score adjusts the narrative's urgency language.
+- **Example:** For bucket `prod-data-lake-raw`, the engine detects `prod` and `data`, upgrading the summary to: *"The resource name contains 'prod', 'data', suggesting this asset handles sensitive data."*
 
-```json
-{
-  "embeds": [{
-    "title": "🛡️ CSPM — S3 Public Access Remediation",
-    "color": 3066993,
-    "fields": [
-      {"name": "🪣 Bucket Name", "value": "`my-bucket`", "inline": true},
-      {"name": "🏢 Account ID", "value": "`123456789012`", "inline": true},
-      {"name": "🌎 Region", "value": "`us-east-1`", "inline": true},
-      {"name": "📋 Status", "value": "**REMEDIATED**", "inline": false}
-    ],
-    "timestamp": "2026-02-28T00:00:00Z"
-  }]
-}
-```
+#### C. Temporal Context (Historical Pattern Analysis)
+- **Technique:** The engine queries DynamoDB for past events matching the same `account_id × vulnerability_type` to build frequency context.
+- **Output:** *"TEMPORAL ANALYSIS: This is the 5th S3 Public Access event detected in account 123456789012. Repeated S3 misconfigurations may indicate a systemic process or training gap."*
+- **Value:** Helps detect **recidivism** — are developers in a specific account repeatedly making the same mistake?
 
-The `color` field is a decimal integer representing the embed sidebar color:
-- Green (REMEDIATED): `0x2ECC71` = `3066993`
-- Red (FAILED): `0xE74C3C` = `15158332`
+#### D. Named Entity Recognition (NER) for IAM Policies
+- **Technique:** Regex-based NER extracts AWS service tokens from IAM policy strings (e.g., `s3:GetObject`, `ec2:*`, `iam:AttachUserPolicy`).
+- **Service Database:** 14 AWS services mapped to human-readable names (e.g., `s3` → *"Simple Storage Service (S3)"*).
+- **Output:** *"NER analysis identified a wildcard policy (Action:*) granting unrestricted access to ALL AWS services including S3, EC2, Lambda, and IAM."*
 
-We use `urllib3` (pre-installed in Lambda) instead of the `requests` library to avoid adding external dependencies.
+#### E. Cross-Event Correlation (Attack Chain Detection)
+- **Technique:** Queries DynamoDB for recent events across *different* vulnerability types in the same account, then pattern-matches against known multi-step attack chains.
+- **Known Kill Chains:**
+  - **Lateral Movement:** IAM Privilege Escalation → Open Security Group SSH
+  - **Data Exfiltration:** Open SSH → S3 Public Access
+  - **Full Compromise:** IAM Privilege Escalation → S3 Public Access
+  - **Persistence:** IAM Privilege Escalation → Unencrypted DynamoDB
+- **Output:** *"CORRELATION ALERT: An IAM privilege escalation was detected in the same account shortly before this network perimeter breach. This pattern matches a lateral movement kill chain."*
+
+#### Interview Talking Point for NLP
+> *"I built a deterministic NLG engine using template-based slot-filling, keyword sentiment analysis, regex-based Named Entity Recognition, and cross-event correlation to generate contextual, audit-grade incident narratives. Each summary maps vulnerabilities to specific CIS, SOC 2, and PCI-DSS controls and detects multi-step attack chains across the MITRE ATT&CK framework — all without any external API dependencies."*
+- **`NoSuchPublicAccessConfiguration`**: The bucket has no public access block at all (most dangerous).
 
 ---
 
-## 6. Infrastructure as Code (Terraform)
+### 4. AWS Services & Network Flow Architecture
 
-### What Is Terraform?
-
-Terraform by HashiCorp is an Infrastructure as Code (IaC) tool. Instead of manually creating cloud resources through a web console, you write declarative configuration files that describe your desired infrastructure, and Terraform creates/updates/deletes resources to match.
-
-### Key Terraform Concepts
-
-- **Provider**: A plugin that interfaces with a cloud platform (AWS, Azure, GCP)
-- **Resource**: A single infrastructure object (e.g., `aws_lambda_function`, `aws_dynamodb_table`)
-- **Data Source**: Reads existing infrastructure without managing it (e.g., `data.aws_caller_identity`)
-- **Variable**: Input parameters for your configuration
-- **Output**: Values exported after deployment (URLs, ARNs, etc.)
-- **State**: Terraform tracks what it has created in a state file (`terraform.tfstate`)
-- **Plan**: Preview what Terraform will create/change/destroy
-- **Apply**: Execute the changes
-- **Destroy**: Delete all managed resources
-
-### Terraform Workflow
-
-```bash
-terraform init      # Download provider plugins
-terraform plan      # Preview changes (dry run)
-terraform apply     # Create/update resources
-terraform destroy   # Delete everything
-```
-
-### HCL (HashiCorp Configuration Language)
-
-Terraform uses HCL, a declarative language:
-```hcl
-resource "aws_lambda_function" "remediation" {
-  function_name = "cspm-remediation"
-  runtime       = "python3.12"
-  handler       = "lambda_function.lambda_handler"
-  role          = aws_iam_role.remediation_role.arn
-  
-  environment {
-    variables = {
-      DISCORD_WEBHOOK_URL = var.discord_webhook_url
+#### How it works logically (The Network Flow):
+1. **Trigger:** A developer or hacker modifies an AWS resource.
+2. **CloudTrail (The Logger):** Records every API call (who, what, when, where) as a JSON event in CloudTrail.
+3. **EventBridge (The Router):** Routes events to our Security Lambda based on pattern-matching rules:
+    ```json
+    {
+      "source": ["aws.s3"],
+      "detail-type": ["AWS API Call via CloudTrail"],
+      "detail": {
+        "eventSource": ["s3.amazonaws.com"],
+        "eventName": ["CreateBucket", "PutBucketPublicAccessBlock"]
+      }
     }
-  }
-}
-```
+    ```
+4. **AWS Lambda (The Brains):** Serverless compute. Scans the JSON, decides if it's a threat, fires a remediation API call back to AWS.
+5. **DynamoDB (The DB):** Serverless NoSQL database. We write event logs to it with a schema containing `event_id`, `timestamp`, `bucket_name`, `status`, `event_name`.
+6. **API Gateway / Local Server:** Serves the frontend and answers API calls. (We used a custom Python HTTP Proxy `local-api-server.py` locally to emulate this over a single port).
 
-The pattern is `resource "TYPE" "LOCAL_NAME" { ... }`. You reference other resources using `TYPE.LOCAL_NAME.attribute`.
-
----
-
-## 7. The Dashboard (Frontend)
-
-### Architecture
-
-The dashboard is a single-page application (SPA) — one HTML file with CSS and JavaScript. No framework (React, Vue, etc.) — pure vanilla JS for simplicity.
-
-### How It Works
-
-1. Browser loads `index.html` from S3 static website
-2. `app.js` calls `GET /events` and `GET /stats` on the API Gateway
-3. JavaScript renders the data into the DOM (stats cards + event table)
-4. Every 30 seconds, it polls the API again for updates
-5. Filter buttons (All / Remediated / Compliant / Failed) filter the table client-side
-
-### Design Choices
-
-- **Dark theme**: Common in security tools (SOC dashboards, SIEM interfaces)
-- **Glassmorphism**: Semi-transparent cards with backdrop blur for depth
-- **Monospace fonts**: Used for technical data (bucket names, account IDs, timestamps)
-- **CSS animations**: Row slide-in, number count-up, pulsing status dot
-- **Mock data**: When no API is configured, generates fake data for demo purposes
-
-### Security Considerations
-
-- **XSS Prevention**: All user-generated content is escaped via `textContent` (not `innerHTML`)
-- **CORS**: API Gateway allows only GET and OPTIONS methods
-- **No credentials in frontend**: The API is public — security is enforced at the IAM level
+#### Local Emulation vs. Real AWS:
+- **Docker & LocalStack:** We used LocalStack inside a Docker container. Docker provides an isolated virtual environment. LocalStack is a Python-based emulator that perfectly mimics the real AWS cloud locally on your PC, saving us cloud billing costs while allowing full end-to-end integration tests.
 
 ---
 
-## 8. Security Concepts
-
-### Defense in Depth
-
-This project demonstrates multiple layers of security:
-1. **Prevention**: S3 public access block flags prevent public exposure
-2. **Detection**: CloudTrail + EventBridge detect configuration changes
-3. **Response**: Lambda automatically remediates misconfigurations
-4. **Notification**: Discord alerts inform the security team
-5. **Audit**: DynamoDB maintains a complete event history
-6. **Monitoring**: Dashboard provides continuous visibility
-
-### Principle of Least Privilege
-
-Every component has only the permissions it needs:
-- Remediation Lambda: Can fix S3, write to DynamoDB, write logs
-- API Lambda: Can read DynamoDB, write logs
-- Dashboard bucket: Public read only (it's a website, not sensitive data)
-
-### Event-Driven Security
-
-Instead of periodically scanning all buckets (polling), we react to events in real-time:
-- **Polling**: "Check every 5 minutes" → wasteful, delayed detection
-- **Event-driven**: "React immediately when something changes" → instant, efficient
+### 5. Compliance Frameworks
+Our CSPM maps every vulnerability to global regulatory standards:
+1. **CIS AWS Foundations Benchmark:** The industry standard for securing AWS accounts (e.g., ensuring S3 public access is blocked `2.1.5`).
+2. **SOC 2 Type II:** Auditing procedure focusing on Trust Services Criteria (Security, Availability, Confidentiality, Privacy).
+3. **PCI-DSS v4.0:** Payment Card Industry rules. Required for any company handling credit card data (requires strict encryption `3.4` and access control `7.1`).
 
 ---
 
-## 9. Key Topics to Study Deeper
+### 6. DevSecOps, CI/CD, and Terraform
 
-1. **AWS Lambda execution model** — cold starts, concurrency, layers, VPC integration
-2. **IAM policy language** — Effect, Action, Resource, Condition
-3. **EventBridge event patterns** — content filtering, input transformation
-4. **DynamoDB data modeling** — partition keys, GSIs, single-table design
-5. **API Gateway** — stages, authorizers, throttling, custom domains
-6. **Terraform state management** — remote backends, workspaces, modules
-7. **S3 security** — bucket policies vs ACLs, encryption, versioning, access points
-8. **CloudTrail** — management events vs data events, multi-region trails
-9. **CSPM frameworks** — CIS Benchmarks, AWS Well-Architected Framework, SOC 2
-10. **Incident response** — automated remediation vs manual approval workflows
+**Shift-Left** means finding security flaws *early* in the development process.
+
+- **Infrastructure as Code (Terraform):** We define our Lambdas, IAM Roles, and EventBridge triggers in declarative HCL files instead of clicking through the AWS console.
+- **Terraform Scanner (`terraform-scanner.py`):** We built a custom static application security testing (SAST) tool that reads `.tf` files and uses Regex to find missing security blocks *before* the infrastructure is even built.
+- **GitHub Actions (CI/CD):** Every time code is pushed, a runner spins up in the cloud, runs our Python `pytest` Unit Tests, and runs the Terraform scanner. If security vulnerabilities are found in the IaC, the pipeline **fails** and blocks the deployment.
+- **Discord Webhooks:** DevSecOps teams need alerts. Our Lambda securely fires JSON payload alerts to a Discord channel (Green for REMEDIATED, Red for FAILED) so the team is aware of live attacks.
 
 ---
 
-## 10. Architecture Diagram
+### 7. Security Flaws & Limitations in Our Project Code
+If an interviewer asks, "What are the limitations of your project?" point out these real architectural flaws:
 
-```
+1. **God-Mode Remediation Lambda:** In this project, our remediation Lambda has extremely wide permissions to modify ANY S3 bucket or IAM user. In a real enterprise, we would restrict the Lambda's IAM Execution Role strictly, utilizing boundary policies so a compromised Lambda couldn't destroy the whole account.
+2. **Race Conditions:** There is a microscopic gap between when a bucket is created and when our Lambda remediates it (milliseconds). In a highly sensitive environment, a hacker could theoretically read data within that gap (we recommend proactive SCPs to completely deny the unencrypted creation in the first place).
+3. **Local API Server:** The custom `local-api-server.py` is fantastic for local dashboards, but in production, we would discard it and use a real **AWS API Gateway** with Cognito authentication to secure the dashboard.
+
+---
+
+### 8. Architecture Diagram
+
+```text
 ┌─────────────────────────────────────────────────────────────────┐
-│                        AWS Account                               │
-│                                                                   │
+│                        AWS Account                              │
+│                                                                 │
 │  ┌──────────┐    ┌─────────────┐    ┌──────────────────────┐    │
-│  │ CloudTrail│───→│ EventBridge │───→│ Remediation Lambda   │    │
-│  │  (audit)  │    │   (router)  │    │  ┌────────────────┐  │    │
-│  └──────────┘    └─────────────┘    │  │ inspect_bucket │  │    │
-│                                      │  │ remediate      │  │    │
-│  ┌──────────┐                        │  │ log_to_dynamo  │  │    │
-│  │ S3 Bucket│←── fixes ─────────────│  │ notify_discord │  │    │
-│  │ (target) │                        │  └────────────────┘  │    │
-│  └──────────┘                        └──────────┬───────────┘    │
-│                                           │           │           │
+│  │ CloudTrail│───→│ EventBridge │───→│ Remediation Lambda  │    │
+│  │  (audit)  │    │   (router)  │    │  ┌────────────────┐ │    │
+│  └──────────┘    └─────────────┘    │  │ scan_resources │ │    │
+│                                      │  │ remediate      │ │    │
+│  ┌────────────┐                      │  │ log_to_dynamo  │ │    │
+│  │ S3 / IAM / │←── fixes ────────────│  │ notify_discord │ │    │
+│  │ EC2 / DDB  │                      │  └────────────────┘ │    │
+│  └────────────┘                      └──────────┬───────────┘    │
+│                                           │           │         │
 │                                     ┌─────▼────┐  ┌──▼────────┐ │
-│                                     │ DynamoDB  │  │  Discord   │ │
-│                                     │ (events)  │  │ (webhook)  │ │
+│                                     │ DynamoDB │  │  Discord  │ │
+│                                     │ (events) │  │ (webhook) │ │
 │                                     └─────┬────┘  └───────────┘ │
-│                                           │                       │
+│                                           │                     │
 │  ┌──────────────┐    ┌──────────┐   ┌────▼──────┐               │
 │  │ S3 Website   │───→│ API GW   │──→│ API Lambda│               │
 │  │ (dashboard)  │    │ (HTTP)   │   │ (read DB) │               │
 │  └──────────────┘    └──────────┘   └───────────┘               │
-│                                                                   │
+│                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+### 9. Component Deep-Dive Breakdown
+
+To properly explain the diagram above in an interview, here is exactly what every single component does:
+
+#### S3 (Simple Storage Service)
+S3 is Amazon's object storage service. It acts as both the **victim** and the **host** in our architecture:
+- **Target:** Users create S3 buckets to store files. If configured poorly, it creates a data breach.
+- **Website Host:** S3 has a feature to host static HTML/CSS/JS files, which is where our frontend CSPM dashboard is stored.
+
+#### IAM (Identity and Access Management)
+IAM manages who can do what in AWS. It deals in Users, Roles, and Policies (JSON permissions).
+- **Target:** When developers create IAM users with wildcard (`*`) permissions, it creates a massive privilege escalation risk. Our IAM Audit Lambda specifically hunts for this.
+- **Security Guardrail:** Every Lambda function we wrote has an execution role tightly defining its authority, following the Principle of Least Privilege.
+
+#### AWS CloudTrail
+CloudTrail is the ultimate audit logger for AWS. Every single time *anyone* or *anything* makes an API call in the AWS account (e.g., clicking a button to create an S3 bucket or run a Python script), CloudTrail records a massive JSON file detailing who did it, at what exact millisecond, from what IP address, and what the parameters were. Without CloudTrail, event-driven security is impossible.
+
+#### Amazon EventBridge
+EventBridge is a serverless event bus / router. It connects CloudTrail to our Security Lambda. We write a JSON "rule" telling EventBridge: *"If you ever see a CloudTrail event where the event name is 'CreateBucket', instantly route that JSON payload to the Remediation Lambda."* EventBridge acts as the glue.
+
+#### Remediation Lambda (The Brain & Muscle)
+This is the core Python script that acts as the active defender. When triggered by EventBridge, it runs sequentially:
+1. `inspect_bucket()`: Uses Boto3 (AWS SDK) to query the bucket and check if it has encryption or public access blocks enabled.
+2. `remediate()`: If a vulnerability is found, it immediately fires a `PutPublicAccessBlock` or `PutBucketEncryption` Boto3 API call to forcefully overwrite the bad configuration and lock the resource.
+3. `notify_discord()`: Formats a JSON alert payload and POSTs it to a webhook URL so human security engineers are aware a threat was neutralized.
+4. `log_to_dynamo()`: Packages the vulnerability details and sends them to the database.
+
+#### Amazon DynamoDB
+DynamoDB is a highly scalable Serverless NoSQL database. We use it instead of SQL because writing millions of fast, unstructured JSON events is what NoSQL excels at. We store the `timestamp`, `bucket_name`, `vulnerability_type`, and `status` (REMEDIATED vs. FAIL).
+
+#### API Gateway (API GW)
+API Gateway acts as the secure front door to our backend database. The frontend browser cannot talk directly to DynamoDB for security reasons. Instead, the browser makes an HTTP GET request to API Gateway (`/events`). API Gateway handles the routing, CORS, and throttling securely.
+
+#### API Lambda (The Reader)
+While the Remediation Lambda is the *writer*, the API Lambda is the *reader*. Triggered by the API Gateway, this simple Python function uses Boto3 to execute a `.scan()` on the DynamoDB table, retrieves all the historical vulnerability events, formats them into a clean JSON response, and sends them back to the frontend dashboard. 
+
+---
+
+### 10. Project Summary Pitch (For Interviews)
+> *"I built an event-driven Serverless Cloud Security Posture Management (CSPM) tool. I used Python and Boto3 to create AWS Lambdas that continuously monitor architecture for high-risk misconfigurations—like public S3 buckets, unencrypted DynamoDB tables, open SSH ports, and wildcard IAM policies. When a threat is detected, the Lambda auto-remediates the vulnerability in milliseconds and records the event in DynamoDB. I integrated an NLP-powered incident intelligence engine that uses template-based NLG, keyword sentiment analysis, Named Entity Recognition, and cross-event correlation to generate audit-grade narratives and detect multi-step attack chains. To make it enterprise-ready, I mapped all vulnerabilities to CIS, SOC 2, and PCI-DSS compliance frameworks, built a real-time tracking dashboard featuring an interactive Attack Path simulation graph, and integrated a custom Terraform static scanner into a GitHub Actions CI/CD pipeline to embrace shift-left DevSecOps principles. The entire environment was developed and tested entirely offline using Docker and LocalStack."*

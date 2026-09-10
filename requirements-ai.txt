@@ -1,0 +1,16 @@
+# Host-side AI/ML dependencies for lambda/shared/ml/ (Layers 1-5 + orchestrator).
+# These run in local dev / the local API server, NOT inside AWS Lambda —
+# Lambda's package size limits and the fact that Layers 1-5 aren't wired into
+# the live Lambda handlers yet make this a host-only requirements file.
+#
+# Install with: pip install -r requirements-ai.txt
+
+scikit-learn>=1.3
+numpy>=1.24
+sentence-transformers>=2.2
+
+# LLM providers for Layer 4 (policy agent) and the orchestrator's reasoner.
+# Only the provider matching your configured API key is actually used at
+# runtime (see .env.example) — both can be installed harmlessly either way.
+groq>=0.9
+google-generativeai>=0.5
