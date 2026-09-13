@@ -70,7 +70,12 @@ const makeEasing = value => {
 const coverScale = (size, gap, radius) => {
   const p = clamp(radius, 0, 50) / 100;
   const corner = Math.SQRT1_2 / (Math.SQRT2 * (0.5 - p) + p);
-  return ((size + gap) / size) * Math.max(1, corner);
+  // Always overscale a hair, even with gap=0: adjacent pixels sit at
+  // sub-pixel left/top offsets (from centering the grid in the container),
+  // and browsers round each box's edges to the nearest device pixel
+  // independently — without a small guaranteed overlap that shows up as
+  // hairline gaps between abutting squares.
+  return Math.max(1.02, ((size + gap) / size) * Math.max(1, corner));
 };
 
 const buildGrid = ({ width, height, pixelSize, gap, pattern, randomness }) => {

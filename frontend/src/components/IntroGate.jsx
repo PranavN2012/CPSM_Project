@@ -65,14 +65,14 @@ export default function IntroGate({ onRevealed }) {
         </div>
       }
       secondContent={<div className="intro-gate__reveal" />}
-      pixelSize={44}
+      pixelSize={56}
       gap={0}
       pixelRadius={0}
       pixelSpin={0}
-      pixelScale={0.3}
-      duration={1400}
+      pixelScale={0.9}
+      duration={1100}
       pixelDuration={450}
-      pattern="random"
+      pattern="center"
       randomness={0}
       fade
       trigger="click"

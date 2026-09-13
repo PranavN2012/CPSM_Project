@@ -112,7 +112,7 @@ export default function DashboardView({ events, stats, compliance, onNavigate, o
         </div>
         <div className="region-pills">
           <button className={`region-pill${region === "all" ? " region-pill--active" : ""}`} onClick={() => setRegion("all")}>All Regions</button>
-          {regions.slice(0, 3).map((r) => (
+          {regions.map((r) => (
             <button key={r} className={`region-pill${region === r ? " region-pill--active" : ""}`} onClick={() => setRegion(r)}>{r}</button>
           ))}
         </div>

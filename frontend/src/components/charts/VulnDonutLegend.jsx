@@ -4,8 +4,14 @@ import { COLORS } from "./chartSetup.js";
 const PALETTE = [COLORS.blue, COLORS.info || COLORS.cyan, COLORS.emerald, COLORS.rose, COLORS.amber, "#8891c9"];
 
 export default function VulnDonutLegend({ vulnerabilityTypes }) {
-  const entries = Object.entries(vulnerabilityTypes || {}).sort((a, b) => b[1] - a[1]).slice(0, 6);
-  const total = entries.reduce((sum, [, v]) => sum + v, 0) || 1;
+  const sorted = Object.entries(vulnerabilityTypes || {}).sort((a, b) => b[1] - a[1]);
+  // Total must reflect every finding, not just the displayed rows — fold
+  // anything past the top 5 into an "Other" slice instead of silently
+  // dropping it from both the chart and the count in the middle.
+  const total = sorted.reduce((sum, [, v]) => sum + v, 0) || 1;
+  const shown = sorted.slice(0, 5);
+  const otherCount = sorted.slice(5).reduce((sum, [, v]) => sum + v, 0);
+  const entries = otherCount > 0 ? [...shown, ["Other", otherCount]] : shown;
   const labels = entries.map(([k]) => k);
   const data = entries.map(([, v]) => v);
   const colors = entries.map((_, i) => PALETTE[i % PALETTE.length]);

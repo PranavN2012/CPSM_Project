@@ -34,7 +34,7 @@ export default function Sidebar({ activePage, onNavigate }) {
   return (
     <aside className="sidebar" id="sidebar">
       <div className="sidebar__brand">
-        <svg className="sidebar__logo" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        <svg className="sidebar__logo sidebar__logo--pop" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
           strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 2L3 7v5c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z" />
           <path d="M9 12l2 2 4-4" />
@@ -60,15 +60,20 @@ export default function Sidebar({ activePage, onNavigate }) {
 
       <nav className="sidebar__nav">
         <span className="sidebar__section-label">Operations</span>
-        {NAV_ITEMS.map((item) => (
+        {NAV_ITEMS.map((item, i) => (
           <a
             key={item.page}
             className={`sidebar__link${activePage === item.page ? " sidebar__link--active" : ""}`}
             title={item.title}
             onClick={() => onNavigate(item.page)}
+            style={{ animationDelay: `${0.05 + i * 0.045}s` }}
           >
+            <span className="sidebar__link-fill" aria-hidden="true" />
             <span className="sidebar__link-icon"><NavIcon name={item.icon} /></span>
-            <span>{item.label}</span>
+            <span className="sidebar__link-label-stack">
+              <span className="sidebar__link-label">{item.label}</span>
+              <span className="sidebar__link-label sidebar__link-label--hover" aria-hidden="true">{item.label}</span>
+            </span>
           </a>
         ))}
       </nav>
