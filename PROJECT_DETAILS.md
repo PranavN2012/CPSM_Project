@@ -161,8 +161,9 @@ A **Cloud Security Posture Management (CSPM)** tool that:
 | **Networking** | EC2 Security Groups | N/A | Network perimeter (target for scanning) |
 | **Logging** | CloudWatch Logs | 14-day retention | Lambda execution logs |
 | **Audit** | AWS CloudTrail | N/A | API call audit trail |
-| **Frontend** | HTML5, CSS3, JavaScript | ES6+ | Dashboard UI |
-| **Charting** | Chart.js | via CDN | Doughnut, bar, and line charts |
+| **Frontend** | React 18 + Vite | ES2020+ | Dashboard UI (superseded the original vanilla HTML/CSS/JS dashboard — see Section 11) |
+| **Charting** | Chart.js (via `react-chartjs-2`) | npm | Doughnut, bar, and line charts |
+| **3D/Shader** | `ogl` | npm | WebGL light-ray shader on the intro splash |
 | **PDF** | fpdf2 | Latest pip | Compliance report generation |
 | **IaC** | Terraform | >= 1.5 | Infrastructure deployment |
 | **Terraform Provider** | hashicorp/aws | ~> 5.0 | AWS resource management |
@@ -752,26 +753,30 @@ This section describes the current React frontend.
 ### Structure
 | Path | Purpose |
 |---|---|
-| `frontend/src/App.jsx` | Root component — single `page` state variable drives which view renders (no router library; reasonable at 7 pages) |
-| `frontend/src/components/views/` | One component per page: `DashboardView`, `AIInsightsView`, `AttackPathView`, `PolicyDiffView`, `EventsView`, `PoliciesView`, `SettingsView` |
+| `frontend/src/App.jsx` | Root component — single `page` state variable drives which view renders (no router library; reasonable at 8 pages) |
+| `frontend/src/main.jsx` | Mounts `IntroGate` first; swaps to `App` only after the one-time cinematic reveal completes, so the intro sequence and its container styling never persist into the real dashboard |
+| `frontend/src/components/views/` | One component per page: `DashboardView`, `AIInsightsView`, `ReviewQueueView`, `AttackPathView`, `PolicyDiffView`, `EventsView`, `PoliciesView`, `SettingsView` |
 | `frontend/src/components/charts/` | `SeverityChart`, `VulnTypeChart`, `TimelineChart`, `AnomalyChart`, `VulnDonutLegend` (Chart.js) |
-| `frontend/src/components/` | Shared pieces: `Sidebar`, `Topbar`, `PriorityCard`, `PolicyCard`, `Toast`, `AnimatedNumber` |
+| `frontend/src/components/` | Shared pieces: `Sidebar`, `Topbar`, `PriorityCard`, `PolicyCard`, `Toast`, `AnimatedNumber`, plus the intro/visual set: `IntroGate`, `PixelSwap` (DOM-clone pixel-dissolve transition), `LightRays` (WebGL shader background via `ogl`), `ShapeGrid` (canvas hexagon mesh, used as the app-wide background), `DecryptedText` (scramble-to-resolve headings), `SplitFlapText` (flip-clock wordmark), `TrueFocus` (blur/focus-cycling brand text) |
 | `frontend/src/hooks/useDashboardData.js` | Polls the API, feeds `events`/`stats`/`compliance` down to every view |
 | `frontend/src/api.js` | The single client module every API call funnels through |
 | `frontend/vite.config.js` | Dev server proxies API calls back to `local-api-server.py`; `npm run build` produces `frontend/dist/`, which is what the server actually serves |
 
-### The 7 Dashboard Pages
-1. **Security Posture** (`DashboardView`) — KPI cards, charts, and the Priority Action Queue (clicking "Review Policy Diff" on a card opens `PolicyDiffView` for that specific finding).
+### The 8 Dashboard Pages
+1. **Security Posture** (`DashboardView`) — KPI cards, charts, and the Priority Action Queue (clicking "Review Policy Diff" on a card opens `PolicyDiffView` for that specific finding). Region pills filter every chart on the page by the event's real `region` field — all distinct regions present in the data get a pill, not a hardcoded subset.
 2. **AI Reasoning (5-Layer)** (`AIInsightsView`) — runs the real Section 5A pipeline live; "Simulate Attack Scenarios" (demo, real blast radius) vs. "Analyze Live Events" (real telemetry; live findings whose resource matches a graph node also now get a real, non-LOW blast radius as of `GROWTH_PLAN.md` Phase 1).
-3. **Attack Path & Blast Radius** (`AttackPathView`) — a scripted CSS/timeout animation over 4 fixed nodes, explicitly labeled "v2 Preview" in its own source; illustrative only, not wired to the real Layer 3 BFS (that output renders on pages 2 and 4 instead).
-4. **Policy Diff & Approval** (`PolicyDiffView`) — renders a real Layer 4 policy draft (actual JSON diff, description, rationale) for whichever incident was selected; the "Deploy Fix" button is intentionally disabled — review-only, nothing is deployed from this UI.
-5. **System & Audit Trace** (`EventsView`) — the real event log, filterable by status, with a "Dispatch Issues" button that fires real GitHub Issues via `github_notifier.py`.
-6. **Policy Engine** (`PoliciesView` + `PolicyCard`) — toggle/filter the 46 YAML rules; "Sync" pulls in more rules from 3 real external sources (GitHub repo, CIS baseline, Prowler) via `policy_sync.py`.
-7. **System Settings** (`SettingsView`) — presentational only; the Discord/GitHub fields shown are static, disabled placeholders (the real GitHub integration lives on page 5, not here).
+3. **Needs Review** (`ReviewQueueView`) — incidents the orchestrator explicitly returned `escalate_to_human` or `gather_more_context` for, pulled from the same live pipeline output as page 2, filtered to just the ones waiting on a person.
+4. **Attack Path & Blast Radius** (`AttackPathView`) — no longer the placeholder v2-preview animation. Given a specific incident (via "Inspect Graph Path" on a Priority Action Queue card), it runs `analyzeEvent()` and renders that incident's *real* Layer 3 BFS output; with no incident selected, it falls back to a clearly-labeled demo picker over the 4 hand-built scenarios rather than silently reusing one.
+5. **Policy Diff & Approval** (`PolicyDiffView`) — reruns the real pipeline against whichever real incident was selected (via `analyzeEvent()`), rendering the actual before/after IAM policy JSON as a computed line diff, the real Layer 4 rationale, and the real `PolicyEvaluator` pass/fail result. **"Deploy Fix" is live**, not disabled: for IAM Audit findings with a resolvable inline policy, it calls `POST /policies/deploy-fix`, which applies the drafted policy via `put_user_policy`/`put_role_policy` against LocalStack IAM, re-invokes the IAM audit Lambda to confirm the finding actually cleared, and — if it did — flips any prior logged events for that identity to `COMPLIANT`. It only supports *inline* policies (a real, disclosed limitation — an identity whose overpermissive grant comes from an attached *managed* policy needs that detached manually first). With no incident selected, the page runs a reference walkthrough over the 4 demo scenarios instead, clearly labeled as such.
+6. **System & Audit Trace** (`EventsView`) — the real event log, filterable by status, with a "Dispatch Issues" button that fires real GitHub Issues via `github_notifier.py`.
+7. **Policy Engine** (`PoliciesView` + `PolicyCard`) — toggle/filter the 46 YAML rules; "Sync" pulls in more rules from 3 real external sources (GitHub repo, CIS baseline, Prowler) via `policy_sync.py`. Some auto-generated policies (for finding types outside the built-in checks) start disabled on purpose, pending human review before they take effect.
+8. **System Settings** (`SettingsView`) — no longer presentational-only. Shows real AI pipeline status (`GET /system-info`: which LLM client is configured, calibration state, policy counts), a live-analysis event-limit control, an on-demand attack simulator (`POST /simulate`), the policy review-queue count, and integration status for GitHub/Discord (booleans only — no secrets rendered).
 
 ### Design System
 - **Theme**: "AEGIS SEC-OPS" dark glassmorphism aesthetic (`glass-card` styling throughout), with a light/dark toggle (`useTheme.js`).
 - **Charting**: Chart.js, themed to match light/dark mode via `chartSetup.js`.
+- **Background**: an animated hexagon mesh (`ShapeGrid`, canvas-based) sits behind the entire app at a negative z-index, visible only in the gaps between opaque panels — colors adapt to light/dark mode.
+- **Intro sequence**: a one-shot cinematic reveal (`IntroGate` + `PixelSwap` + `LightRays` + `SplitFlapText`) shown once before `App` mounts, then fully unmounted — it can never re-trigger or leak into any other page.
 - **Responsive**: standard CSS, no separate mobile-specific breakpoint system.
 
 ---

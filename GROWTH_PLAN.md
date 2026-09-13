@@ -35,6 +35,19 @@ each). **Phase 6 is next.** Phase 7 follows it — both scoped specifically to w
 achievable solo and free (no real AWS, ever) — see `PROJECT_MASTERCLASS.md` Part
 "Absolute growth scope" discussion for the full tiered reasoning behind this split.
 
+**Status update (2026-09-13)**: Phase 7 item 3 (Deploy Fix) is now done — see its
+entry below; item 2 (RBAC) is correspondingly more urgent, not less, since Deploy Fix
+now applies a real IAM change with no auth gate in front of it. Since 2026-09-10 the
+React frontend also had a full pass of real-vs-demo cleanup (Policy Diff and Attack
+Path now run against real selected incidents instead of only the demo scenarios;
+Needs Review added as its own page; System Settings rebuilt from a static mockup into
+a real status/config page) plus a cinematic intro sequence and app-wide visual pass
+(`IntroGate`, `PixelSwap`, `LightRays`, `ShapeGrid`, `DecryptedText`, `SplitFlapText`,
+`TrueFocus`) and two real dashboard bugs fixed: the region-pill list was hardcoded to
+the first 3 regions (3 of 6 real regions had no way to be selected), and the
+Vulnerability Vector Split donut's total silently summed only its top-6-shown
+vulnerability types instead of every finding. Full test suite: 279/279 passing.
+
 ---
 
 ## Phase 0 — Close the seams an examiner will find in 10 minutes ✅ DONE (2026-09-10)
@@ -345,14 +358,29 @@ deployment. Everything below stays inside the existing LocalStack setup.
    one confirming an *unrelated* condition key is correctly left alone — not
    over-claiming more coverage than was actually built); full suite 267/267
    passing; `eval/layer3_blast_radius_eval.py` re-run and still holds.
-2. **Dashboard auth/RBAC** — not started. There is currently none. Add real
-   login and gate who can click "Deploy Fix" behind a role, not just a
-   disabled button. Deliberately not rushed alongside everything else in this
-   pass — a security-focused project's own auth layer deserves a dedicated
-   design pass, not a bolt-on at the tail of a long implementation session.
-3. **Wire "Deploy Fix" to something real (LocalStack only)** — not started,
-   same reasoning as item 2 (depends on item 2 existing first — an approval
-   flow needs someone to approve as).
+2. **Dashboard auth/RBAC** — still not started, and now a sharper gap than
+   when this was written: item 3 below (Deploy Fix) shipped without it, so
+   the dashboard currently has **no login and no role check at all** in
+   front of a button that applies a real IAM policy change against
+   LocalStack. Anyone with the dashboard open can click "Deploy Fix." That
+   was an acceptable order of operations for a solo local-dev project, but
+   it's the honest reason this item is now higher-priority, not lower — an
+   approval flow with nobody gating who can approve isn't a real approval
+   flow yet.
+3. ✅ **DONE (2026-09-10) — Wired "Deploy Fix" to something real
+   (LocalStack only).** `POST /policies/deploy-fix` in
+   `local-api-server.py` applies the drafted policy via
+   `put_user_policy`/`put_role_policy` against real LocalStack IAM,
+   re-invokes the IAM audit Lambda to confirm the finding actually cleared,
+   and flips any prior logged DynamoDB events for that identity to
+   `COMPLIANT` if the rescan comes back clean. `PolicyDiffView.jsx`'s
+   "Deploy Fix" button is no longer disabled for real incidents with a
+   resolvable inline policy. **Real, disclosed limitation found while
+   testing this against `cspm-lambda-role`**: it only supports *inline*
+   policies — an identity whose overpermissive grant comes from an
+   *attached managed* policy (that role had `AdministratorAccess`
+   attached) has to be detached manually outside this flow first. This is
+   exactly why item 2 above is now more urgent, not less.
 4. ✅ **DONE — CI now points at the full test suite.**
    `.github/workflows/cspm-scan.yml`'s `python-tests` job now installs
    `requirements-ai.txt` + PyYAML (previously only `pytest boto3 botocore

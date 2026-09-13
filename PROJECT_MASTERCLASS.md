@@ -527,7 +527,7 @@ loop is the boto3/LocalStack one.
 
 ### 6.2 Every dashboard page, what it does, and what's real
 
-The sidebar (`Sidebar.jsx`) has exactly 7 pages. Going through them
+The sidebar (`Sidebar.jsx`) has exactly 8 pages. Going through them
 honestly:
 
 **Security Posture (Dashboard)** — the landing page: charts
@@ -556,42 +556,50 @@ Every card here — anomaly score, ATT&CK technique, blast radius severity,
 priority tier, orchestrator rationale — is the actual JSON the pipeline
 produced for that run, rendered directly, not mocked UI text.
 
-**Attack Path & Blast Radius** (`AttackPathView.jsx`) — **be precise about
-this one**: it's labeled in its own source as "v2 Preview," and it is a
-**scripted CSS/timeout animation** over 4 fixed nodes (Public IP → Open
-Port 22 → Compromised IAM → Public S3 Bucket) — not a call into
-`blast_radius.py`'s real BFS. It's a visual explainer of *what* blast
-radius conceptually means, built before the real Layer 3 engine existed,
-and it hasn't been rewired to render real graph output yet. **The real
-blast-radius numbers live in the AI Insights and Policy Diff pages** (Layer
-3 cards, e.g. `dev-intern-role`'s actual CRITICAL severity from the real
-21-node seed graph). If an examiner asks "is this animation real," the
-correct answer is: "no, that page is a UI concept demo; the actual graph
-traversal runs here —" and point at AI Insights/Policy Diff. Saying this
-proactively is much stronger than hoping it doesn't come up.
+**Needs Review** (`ReviewQueueView.jsx`) — added after the pages below were
+first written, so it's easy to miss in older notes: it's the same live
+pipeline output as AI Reasoning, filtered down to just the incidents the
+orchestrator returned `escalate_to_human` or `gather_more_context` for.
+This is the actual "where does a human intervene" answer for the project —
+it didn't exist as its own page originally, and incidents like that were
+easy to lose inside the general AI Reasoning feed.
+
+**Attack Path & Blast Radius** (`AttackPathView.jsx`) — **this was rewired
+since the "v2 Preview" placeholder era** — don't repeat the old framing if
+asked. Given a specific incident (reached via "Inspect Graph Path" on a
+Priority Action Queue card), it now calls the real pipeline (`analyzeEvent()`)
+and lays out that incident's actual Layer 3 BFS output as an SVG graph — a
+real traversal, not a scripted animation. With no incident selected (landing
+on the page directly from the sidebar), it falls back to a demo picker over
+the 4 hand-built scenarios, explicitly labeled as a demo rather than
+silently reusing one. If an examiner asks "is this graph real," the correct
+answer is now: "yes, for a selected incident it's the live BFS; the demo
+picker is the honest fallback when nothing specific is selected."
 
 **Policy Diff & Approval** (`PolicyDiffView.jsx`) — this is real, and it's
-one of the most carefully-built pages in the project. It reruns the full
-pipeline against exactly the one demo scenario that carries IAM policy
-context (`demo-2`: `ci-deploy-role` administering the production S3
-bucket) and renders:
+one of the most carefully-built pages in the project. Given a selected
+incident, it reruns the full pipeline against that *exact* real event via
+`analyzeEvent()` — not just the one demo scenario it was originally limited
+to — and renders:
 - The actual before/after IAM policy JSON as a **computed line diff**
   (`utils/lineDiff.js` — a real diff algorithm, not a canned screenshot).
 - The real Layer 4 rationale text the LLM produced.
 - The real "must-still-allow" check result from `PolicyEvaluator`.
-- A visible SLA countdown timer and "Deploy Fix" button that is
-  **intentionally disabled** — the page footer says outright *"Nothing
-  here touches real AWS"* and *"This is a UI review page — no policy is
-  actually deployed from here."* That's a deliberate safety boundary, not
-  an unfinished feature — worth stating as a design choice: an autonomous
-  agent that can *draft* a fix but is architecturally prevented from
-  *deploying* one without a human clicking a (currently disabled, for
-  demo safety) approval button is the responsible way to build this.
-- **Known limitation, stated in the code's own comment**: only this one
-  demo scenario has `policy_fix_context` wired up; real live CSPM events
-  don't carry the IAM-policy-before/after context Layer 4 needs, so this
-  page can't yet run against arbitrary live findings. Same open item as
-  6.2's Attack Path gap — both trace back to `GROWTH_PLAN.md`.
+- A visible SLA countdown timer and a **"Deploy Fix" button that is now
+  live**, not disabled. For an IAM Audit finding whose overpermissive grant
+  comes from an *inline* policy, clicking it calls `POST /policies/deploy-fix`,
+  which applies the drafted policy via `put_user_policy`/`put_role_policy`
+  against real LocalStack IAM, re-invokes the IAM audit Lambda to confirm
+  the finding actually cleared, and — if clean — flips any prior logged
+  events for that identity to `COMPLIANT`. **A real, disclosed limitation**:
+  it only supports inline policies; an identity whose overpermissive grant
+  comes from an *attached managed* policy (e.g. `AdministratorAccess`) isn't
+  something this flow can detach — that has to be fixed outside the UI. This
+  was a genuine architectural gap discovered while testing against
+  `cspm-lambda-role`, not a hypothetical caveat.
+- With no incident selected, the page runs a reference walkthrough over the
+  4 demo scenarios instead of the real pipeline, and says so explicitly in
+  its own copy — no silent substitution.
 
 **System & Audit Trace** (`EventsView.jsx`) — the raw event log: every
 finding/remediation event from DynamoDB, filterable by status (Secured /
@@ -621,15 +629,19 @@ Layer 4's per-incident policy *drafts* (which are IAM policies, not
 detection rules — don't conflate the two "policy" concepts here either,
 same distinction as Part 1.4).
 
-**System Settings** (`SettingsView.jsx`) — **honest disclosure**: this page
-is presentational only. The Discord webhook field and "Sync Repository"
-button are both disabled, static UI (`disabled` in the JSX) — they
-communicate *what integrations exist conceptually* (Discord notifications,
-GitHub sync) rather than being live controls. The GitHub integration it
-describes is real (that's `github_notifier.py`, exercised from the Events
-page's "Dispatch Issues" button) — Settings just isn't the page that
-triggers it. If asked, say plainly: "Settings is a static summary page;
-the live GitHub integration is wired up and used from the Events page."
+**System Settings** (`SettingsView.jsx`) — **no longer presentational-only**;
+this page was rebuilt after the "static summary page" era. It now reads
+`GET /system-info` and renders real state: whether the AI engine and which
+LLM client are available, the anomaly/classifier thresholds and whether the
+classifier is calibrated, live policy counts (total/enabled/pending review),
+and integration status for GitHub/Discord (booleans only — it never renders
+a secret). It also has two live controls: a slider/input for the live-events
+analysis limit (persisted to `localStorage`, read by AI Reasoning and Needs
+Review), and an attack-simulator dropdown that calls `POST /simulate` to
+trigger a new synthetic incident on demand. If asked, say: "Settings is a
+real status/config page now, not a static mockup — the two things it
+doesn't do are edit the Discord webhook or trigger a GitHub sync directly,
+both of which live in their own dedicated backend scripts instead."
 
 ### 6.3 Discord and GitHub notifications — real vs. described
 
@@ -638,11 +650,12 @@ the live GitHub integration is wired up and used from the Events page."
   `GITHUB_TOKEN` env var to actually fire; without one it fails cleanly
   rather than crashing.
 - **Discord webhook**: referenced in `deploy-lambdas.py`
-  (`DISCORD_WEBHOOK_URL` env var) as a configurable notification channel,
-  and shown as "Active" in Settings — but the Settings field itself is a
-  disabled placeholder, not a live editable integration control. Treat it
-  as "supported by the backend, not yet a live dashboard control" if
-  asked directly.
+  (`DISCORD_WEBHOOK_URL` env var) as a configurable notification channel;
+  Settings now reports its *configured/not-configured* status honestly via
+  `/system-info` rather than always showing "Active," but there's still no
+  in-dashboard control to edit the webhook URL itself — that's set via
+  environment variable only. Treat it as "status is real and live; editing
+  it is still a backend/env-var concern, not a dashboard control" if asked.
 
 ### 6.4 The pattern worth naming out loud in your defense
 
